@@ -1,0 +1,3 @@
+[submodule "Embedded-RaspberryPi-Godot-UI-Kiosk-Image"]
+	path = Embedded-RaspberryPi-Godot-UI-Kiosk-Image
+	url = git@github.com:corykacal/Embedded-RaspberryPi-Godot-UI-Kiosk-Image.git
