@@ -3,6 +3,7 @@
 #include "../core/dsp_ops.h"
 #include "../effects/delay.h"
 #include "../effects/lfo.h"
+#include "../effects/envelope.h"
 #include "../effects/reverb.h"
 #include "../effects/pitch_shift.h"
 #include "../effects/svfilter.h"
@@ -134,6 +135,45 @@ std::vector<DSPBlock> GraphCompiler::compile_control_node(const GraphNode& node,
 
         DSPBlock block;
         block.fn = lfo_op;
+        block.in_a = 0;
+        block.in_b = 0;
+        block.out = out_buf;
+        block.state = state;
+        blocks.push_back(block);
+    }
+    else if (node.type == "envelope") {
+        // Parse envelope parameters
+        std::string type_str = get_param<std::string>(node.params, "envelope_type", "adsr");
+        EnvelopeType env_type = envelope_type_from_string(type_str);
+        float attack_ms = get_param<float>(node.params, "attack_ms", 10.0f);
+        float decay_ms = get_param<float>(node.params, "decay_ms", 100.0f);
+        float sustain_level = get_param<float>(node.params, "sustain_level", 0.7f);
+        float release_ms = get_param<float>(node.params, "release_ms", 200.0f);
+
+        // Create envelope state
+        EnvelopeState* state = envelope_state_create(env_type, attack_ms, decay_ms,
+                                                      sustain_level, release_ms,
+                                                      ctx.sample_rate);
+        if (!state) {
+            errors.push_back("Failed to allocate envelope state for " + node.id);
+            return blocks;
+        }
+        ctx.allocated_states.push_back(state);
+
+        // Register modulatable parameters
+        ctx.params[node.id + ":attack_ms"] = &state->attack_ms;
+        ctx.params[node.id + ":decay_ms"] = &state->decay_ms;
+        ctx.params[node.id + ":sustain_level"] = &state->sustain_level;
+        ctx.params[node.id + ":release_ms"] = &state->release_ms;
+        ctx.params[node.id + ":gate"] = &state->gate;
+        ctx.params[node.id + ":trigger"] = &state->trigger;
+
+        // Allocate control output buffer
+        std::string out_ref = node.id + ":value";
+        uint32_t out_buf = allocate_control_buffer(ctx, out_ref);
+
+        DSPBlock block;
+        block.fn = envelope_op;
         block.in_a = 0;
         block.in_b = 0;
         block.out = out_buf;
