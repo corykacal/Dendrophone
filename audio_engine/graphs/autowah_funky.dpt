@@ -1,0 +1,70 @@
+{
+  "dpt_version": 1,
+  "audio": {
+    "inputs": ["L", "R"],
+    "outputs": ["L", "R"]
+  },
+  "nodes": {
+    "input": {
+      "type": "input",
+      "outputs": ["L", "R"]
+    },
+    "lfo_resonance": {
+      "type": "lfo",
+      "rate": "control",
+      "outputs": ["value"],
+      "params": {
+        "wave": "sine",
+        "freq_hz": 0.4,
+        "depth": 2.0
+      }
+    },
+    "lfo_max_freq": {
+      "type": "lfo",
+      "rate": "control",
+      "outputs": ["value"],
+      "params": {
+        "wave": "triangle",
+        "freq_hz": 0.2,
+        "depth": 1500.0
+      }
+    },
+    "autowah": {
+      "type": "autowah",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "param_inputs": ["resonance", "frequency_max_hz"],
+      "params": {
+        "sensitivity": 0.8,
+        "attack_ms": 5.0,
+        "release_ms": 150.0,
+        "frequency_min_hz": 400.0,
+        "frequency_max_hz": 2500.0,
+        "resonance": 4.0,
+        "mix": 1.0
+      }
+    },
+    "delay": {
+      "type": "delay",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "params": {
+        "time_ms": 250.0,
+        "feedback": 0.3,
+        "mix": 0.25
+      }
+    },
+    "output": {
+      "type": "output",
+      "inputs": ["L", "R"]
+    }
+  },
+  "connections": [
+    { "from": "input:L", "to": "autowah:in" },
+    { "from": "lfo_resonance:value", "to": "autowah:resonance" },
+    { "from": "lfo_max_freq:value", "to": "autowah:frequency_max_hz" },
+    { "from": "autowah:out", "to": "delay:in" },
+    { "from": "delay:out", "to": "output:L" },
+    { "from": "delay:out", "to": "output:R" }
+  ]
+}

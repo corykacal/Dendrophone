@@ -1,0 +1,46 @@
+{
+  "dpt_version": 1,
+  "audio": {
+    "inputs": ["L", "R"],
+    "outputs": ["L", "R"]
+  },
+  "nodes": {
+    "input": {
+      "type": "input",
+      "outputs": ["L", "R"]
+    },
+    "lfo_feedback": {
+      "type": "lfo",
+      "rate": "control",
+      "outputs": ["value"],
+      "params": {
+        "wave": "triangle",
+        "freq_hz": 0.2,
+        "depth": 0.4
+      }
+    },
+    "flanger": {
+      "type": "flanger",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "param_inputs": ["feedback"],
+      "params": {
+        "rate_hz": 0.3,
+        "depth": 0.9,
+        "feedback": 0.6,
+        "delay_ms": 3.0,
+        "mix": 0.7
+      }
+    },
+    "output": {
+      "type": "output",
+      "inputs": ["L", "R"]
+    }
+  },
+  "connections": [
+    { "from": "input:L", "to": "flanger:in" },
+    { "from": "lfo_feedback:value", "to": "flanger:feedback" },
+    { "from": "flanger:out", "to": "output:L" },
+    { "from": "flanger:out", "to": "output:R" }
+  ]
+}

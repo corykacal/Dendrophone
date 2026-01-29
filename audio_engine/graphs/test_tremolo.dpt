@@ -1,0 +1,34 @@
+{
+  "dpt_version": 1,
+  "audio": {
+    "inputs": ["L", "R"],
+    "outputs": ["L", "R"]
+  },
+  "nodes": {
+    "input": {
+      "type": "input",
+      "outputs": ["L", "R"]
+    },
+    "tremolo": {
+      "type": "tremolo",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "params": {
+        "rate_hz": 5.0,
+        "depth": 0.7,
+        "waveform": "sine",
+        "stereo_phase": 0.0,
+        "mix": 1.0
+      }
+    },
+    "output": {
+      "type": "output",
+      "inputs": ["L", "R"]
+    }
+  },
+  "connections": [
+    { "from": "input:L", "to": "tremolo:in" },
+    { "from": "tremolo:out", "to": "output:L" },
+    { "from": "tremolo:out", "to": "output:R" }
+  ]
+}

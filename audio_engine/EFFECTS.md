@@ -464,6 +464,157 @@ Control-rate signal generator for modulation.
 
 ---
 
+### 11. Chorus
+
+Lush modulation effect that creates an ensemble-like sound using multiple modulated delay lines.
+
+**Ports:**
+- `in` - Audio input
+- `out` - Audio output
+
+**Parameters:**
+- `rate_hz` (float) - LFO rate in Hz, 0.1 to 10.0 (default: 1.5)
+- `depth` (float) - Modulation depth, 0.0 to 1.0 (default: 0.5)
+- `voices` (int) - Number of chorus voices, 2 to 4 (default: 3)
+- `stereo_width` (float) - Stereo spread, 0.0 to 1.0 (default: 0.5)
+- `mix` (float) - Dry/wet mix 0.0 to 1.0 (default: 0.5)
+
+**Modulatable:** `rate_hz`, `depth`, `mix`
+
+**Implementation Details:**
+- Uses 2-4 independent delay lines (~15-30ms each)
+- Each voice has slightly different LFO phase for rich stereo image
+- Sine wave LFO modulation creates smooth, classic chorus sound
+
+---
+
+### 12. Tremolo
+
+Amplitude modulation effect that creates rhythmic volume variations.
+
+**Ports:**
+- `in` - Audio input
+- `out` - Audio output
+
+**Parameters:**
+- `rate_hz` (float) - LFO rate in Hz, 0.1 to 20.0 (default: 4.0)
+- `depth` (float) - Modulation depth, 0.0 to 1.0 (default: 0.5)
+- `waveform` (string) - "sine", "triangle", "square" (default: "sine")
+- `stereo_phase` (float) - L/R phase offset, 0.0 to 1.0 (default: 0.0)
+- `mix` (float) - Dry/wet mix 0.0 to 1.0 (default: 1.0)
+
+**Modulatable:** `rate_hz`, `depth`, `mix`
+
+**Implementation Details:**
+- Simple LFO-controlled gain modulation
+- Three waveform options for different tremolo characters
+- Extremely CPU-efficient
+
+---
+
+### 13. Flanger
+
+Classic swooshing effect using a short modulated delay with feedback.
+
+**Ports:**
+- `in` - Audio input
+- `out` - Audio output
+
+**Parameters:**
+- `rate_hz` (float) - LFO rate in Hz, 0.1 to 10.0 (default: 0.5)
+- `depth` (float) - Delay modulation depth, 0.0 to 1.0 (default: 0.7)
+- `feedback` (float) - Feedback amount, -0.95 to 0.95 (default: 0.5)
+- `delay_ms` (float) - Center delay time in ms, 0.1 to 10.0 (default: 2.0)
+- `mix` (float) - Dry/wet mix 0.0 to 1.0 (default: 0.5)
+
+**Modulatable:** `rate_hz`, `depth`, `feedback`, `delay_ms`, `mix`
+
+**Implementation Details:**
+- Very short delay (0.1-10ms) with sine LFO modulation
+- Feedback path creates classic "jet plane" swoosh
+- Negative feedback values create through-zero flanging
+
+---
+
+### 14. Compressor
+
+Dynamics processor that reduces dynamic range for consistent levels and enhanced sustain.
+
+**Ports:**
+- `in` - Audio input
+- `out` - Audio output
+
+**Parameters:**
+- `threshold_db` (float) - Compression threshold in dB, -60.0 to 0.0 (default: -20.0)
+- `ratio` (float) - Compression ratio, 1.0 to 20.0 (default: 4.0)
+- `attack_ms` (float) - Attack time in ms, 0.1 to 100.0 (default: 10.0)
+- `release_ms` (float) - Release time in ms, 10.0 to 1000.0 (default: 100.0)
+- `makeup_gain_db` (float) - Post-compression gain in dB, 0.0 to 40.0 (default: 0.0)
+- `mix` (float) - Dry/wet mix 0.0 to 1.0 (default: 1.0)
+
+**Modulatable:** `threshold_db`, `ratio`, `attack_ms`, `release_ms`, `makeup_gain_db`, `mix`
+
+**Implementation Details:**
+- Feed-forward compressor with peak detection
+- Exponential attack/release envelopes
+- Logarithmic gain reduction calculation
+- Essential for controlling dynamics and adding sustain
+
+---
+
+### 15. Overdrive
+
+Saturation effect that adds harmonic richness through waveshaping.
+
+**Ports:**
+- `in` - Audio input
+- `out` - Audio output
+
+**Parameters:**
+- `drive` (float) - Drive amount, 0.0 to 1.0 (default: 0.5, maps to 1x-50x pre-gain)
+- `tone` (float) - Tone control (LP filter), 0.0 to 1.0 (default: 0.5)
+- `level` (float) - Output level, 0.0 to 2.0 (default: 1.0)
+- `type` (string) - "soft", "hard", "asymmetric" (default: "soft")
+- `mix` (float) - Dry/wet mix 0.0 to 1.0 (default: 1.0)
+
+**Modulatable:** `drive`, `tone`, `level`, `mix`
+
+**Implementation Details:**
+- Three waveshaping algorithms:
+  - Soft: tanh-style smooth clipping
+  - Hard: hard clipping at ±1.0
+  - Asymmetric: different clipping curves for positive/negative
+- Tone control: 1-pole lowpass filter (500Hz - 5kHz)
+- Pre-gain, waveshaping, filtering, output level
+
+---
+
+### 16. Auto-Wah
+
+Envelope-controlled filter that creates dynamic "wah-wah" tones responding to playing dynamics.
+
+**Ports:**
+- `in` - Audio input
+- `out` - Audio output
+
+**Parameters:**
+- `sensitivity` (float) - Envelope sensitivity, 0.0 to 1.0 (default: 0.5)
+- `attack_ms` (float) - Envelope attack time in ms, 1.0 to 100.0 (default: 10.0)
+- `release_ms` (float) - Envelope release time in ms, 10.0 to 1000.0 (default: 200.0)
+- `frequency_min_hz` (float) - Minimum filter frequency in Hz, 100.0 to 2000.0 (default: 300.0)
+- `frequency_max_hz` (float) - Maximum filter frequency in Hz, 500.0 to 8000.0 (default: 3000.0)
+- `resonance` (float) - Filter resonance/Q, 0.5 to 10.0 (default: 2.0)
+- `mix` (float) - Dry/wet mix 0.0 to 1.0 (default: 1.0)
+
+**Modulatable:** `sensitivity`, `attack_ms`, `release_ms`, `frequency_min_hz`, `frequency_max_hz`, `resonance`, `mix`
+
+**Implementation Details:**
+- Envelope follower with peak detection and attack/release smoothing
+- Envelope maps to State Variable Filter (bandpass mode) cutoff frequency
+- Expressive, input-responsive filtering
+
+---
+
 ## Effect Chaining
 
 Effects can be chained in series or parallel using the graph connections.
@@ -570,6 +721,16 @@ Example .dpt files are available in the `graphs/` directory:
 - `ambient_texture_2.dpt` - Dense granular cloud with reverse echo
 - `ambient_texture_3.dpt` - Multi-octave shimmer pad with filter sweeps
 
+**User-Friendly Effects (Modulation Trio):**
+- `test_chorus.dpt` - Basic chorus effect with 3 voices
+- `test_tremolo.dpt` - Tremolo with sine wave modulation
+- `test_flanger.dpt` - Classic flanger with moderate feedback
+
+**User-Friendly Effects (Dynamics & Saturation):**
+- `test_compressor.dpt` - Compressor with 4:1 ratio and makeup gain
+- `test_overdrive.dpt` - Soft overdrive with tone control
+- `test_autowah.dpt` - Auto-wah with envelope-controlled filter sweep
+
 Run examples:
 ```bash
 # Basic effects
@@ -594,6 +755,14 @@ Run examples:
 ./build/dendrophone graphs/glitch_modulated.dpt
 ./build/dendrophone graphs/looper_glitch_combo.dpt
 ./build/dendrophone graphs/microcosm_style.dpt
+
+# User-friendly effects
+./build/dendrophone graphs/test_chorus.dpt
+./build/dendrophone graphs/test_tremolo.dpt
+./build/dendrophone graphs/test_flanger.dpt
+./build/dendrophone graphs/test_compressor.dpt
+./build/dendrophone graphs/test_overdrive.dpt
+./build/dendrophone graphs/test_autowah.dpt
 ```
 
 ---

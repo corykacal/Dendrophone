@@ -11,6 +11,12 @@
 #include "../effects/granular.h"
 #include "../effects/looper.h"
 #include "../effects/glitch.h"
+#include "../effects/chorus.h"
+#include "../effects/tremolo.h"
+#include "../effects/flanger.h"
+#include "../effects/compressor.h"
+#include "../effects/overdrive.h"
+#include "../effects/autowah.h"
 #include <algorithm>
 #include <queue>
 #include <map>
@@ -587,6 +593,278 @@ std::vector<DSPBlock> GraphCompiler::compile_audio_node(const GraphNode& node,
 
         DSPBlock block;
         block.fn = glitch_op;
+        block.in_a = in_buf;
+        block.in_b = 0;
+        block.out = out_buf;
+        block.state = state;
+        blocks.push_back(block);
+    }
+    else if (node.type == "chorus") {
+        // Parse chorus parameters
+        float rate_hz = get_param<float>(node.params, "rate_hz", 1.5f);
+        float depth = get_param<float>(node.params, "depth", 0.5f);
+        int voices = get_param<int>(node.params, "voices", 3);
+        float stereo_width = get_param<float>(node.params, "stereo_width", 0.5f);
+        float mix = get_param<float>(node.params, "mix", 0.5f);
+
+        // Create chorus state
+        ChorusState* state = chorus_state_create(rate_hz, depth, voices, stereo_width, mix,
+                                                  static_cast<float>(ctx.sample_rate));
+        if (!state) {
+            errors.push_back("Failed to allocate chorus state for " + node.id);
+            return blocks;
+        }
+        ctx.allocated_states.push_back(state);
+
+        // Register modulatable parameters
+        ctx.params[node.id + ":rate_hz"] = &state->rate_hz;
+        ctx.params[node.id + ":depth"] = &state->depth;
+        ctx.params[node.id + ":mix"] = &state->mix;
+
+        // Find input buffer
+        uint32_t in_buf = 0;
+        for (const auto& conn : graph.connections) {
+            if (conn.to.node == node.id && conn.to.port == "in") {
+                std::string src_ref = conn.from.node + ":" + conn.from.port;
+                in_buf = get_buffer(ctx, src_ref);
+                break;
+            }
+        }
+
+        std::string out_ref = node.id + ":out";
+        uint32_t out_buf = allocate_buffer(ctx, out_ref);
+
+        DSPBlock block;
+        block.fn = chorus_op;
+        block.in_a = in_buf;
+        block.in_b = 0;
+        block.out = out_buf;
+        block.state = state;
+        blocks.push_back(block);
+    }
+    else if (node.type == "tremolo") {
+        // Parse tremolo parameters
+        float rate_hz = get_param<float>(node.params, "rate_hz", 4.0f);
+        float depth = get_param<float>(node.params, "depth", 0.5f);
+        std::string waveform = get_param<std::string>(node.params, "waveform", "sine");
+        float stereo_phase = get_param<float>(node.params, "stereo_phase", 0.0f);
+        float mix = get_param<float>(node.params, "mix", 1.0f);
+
+        // Create tremolo state
+        TremoloState* state = tremolo_state_create(rate_hz, depth, waveform, stereo_phase, mix,
+                                                    static_cast<float>(ctx.sample_rate));
+        if (!state) {
+            errors.push_back("Failed to allocate tremolo state for " + node.id);
+            return blocks;
+        }
+        ctx.allocated_states.push_back(state);
+
+        // Register modulatable parameters
+        ctx.params[node.id + ":rate_hz"] = &state->rate_hz;
+        ctx.params[node.id + ":depth"] = &state->depth;
+        ctx.params[node.id + ":mix"] = &state->mix;
+
+        // Find input buffer
+        uint32_t in_buf = 0;
+        for (const auto& conn : graph.connections) {
+            if (conn.to.node == node.id && conn.to.port == "in") {
+                std::string src_ref = conn.from.node + ":" + conn.from.port;
+                in_buf = get_buffer(ctx, src_ref);
+                break;
+            }
+        }
+
+        std::string out_ref = node.id + ":out";
+        uint32_t out_buf = allocate_buffer(ctx, out_ref);
+
+        DSPBlock block;
+        block.fn = tremolo_op;
+        block.in_a = in_buf;
+        block.in_b = 0;
+        block.out = out_buf;
+        block.state = state;
+        blocks.push_back(block);
+    }
+    else if (node.type == "flanger") {
+        // Parse flanger parameters
+        float rate_hz = get_param<float>(node.params, "rate_hz", 0.5f);
+        float depth = get_param<float>(node.params, "depth", 0.7f);
+        float feedback = get_param<float>(node.params, "feedback", 0.5f);
+        float delay_ms = get_param<float>(node.params, "delay_ms", 2.0f);
+        float mix = get_param<float>(node.params, "mix", 0.5f);
+
+        // Create flanger state
+        FlangerState* state = flanger_state_create(rate_hz, depth, feedback, delay_ms, mix,
+                                                    static_cast<float>(ctx.sample_rate));
+        if (!state) {
+            errors.push_back("Failed to allocate flanger state for " + node.id);
+            return blocks;
+        }
+        ctx.allocated_states.push_back(state);
+
+        // Register modulatable parameters
+        ctx.params[node.id + ":rate_hz"] = &state->rate_hz;
+        ctx.params[node.id + ":depth"] = &state->depth;
+        ctx.params[node.id + ":feedback"] = &state->feedback;
+        ctx.params[node.id + ":delay_ms"] = &state->delay_ms;
+        ctx.params[node.id + ":mix"] = &state->mix;
+
+        // Find input buffer
+        uint32_t in_buf = 0;
+        for (const auto& conn : graph.connections) {
+            if (conn.to.node == node.id && conn.to.port == "in") {
+                std::string src_ref = conn.from.node + ":" + conn.from.port;
+                in_buf = get_buffer(ctx, src_ref);
+                break;
+            }
+        }
+
+        std::string out_ref = node.id + ":out";
+        uint32_t out_buf = allocate_buffer(ctx, out_ref);
+
+        DSPBlock block;
+        block.fn = flanger_op;
+        block.in_a = in_buf;
+        block.in_b = 0;
+        block.out = out_buf;
+        block.state = state;
+        blocks.push_back(block);
+    }
+    else if (node.type == "compressor") {
+        // Parse compressor parameters
+        float threshold_db = get_param<float>(node.params, "threshold_db", -20.0f);
+        float ratio = get_param<float>(node.params, "ratio", 4.0f);
+        float attack_ms = get_param<float>(node.params, "attack_ms", 10.0f);
+        float release_ms = get_param<float>(node.params, "release_ms", 100.0f);
+        float makeup_gain_db = get_param<float>(node.params, "makeup_gain_db", 0.0f);
+        float mix = get_param<float>(node.params, "mix", 1.0f);
+
+        // Create compressor state
+        CompressorState* state = compressor_state_create(threshold_db, ratio, attack_ms, release_ms,
+                                                          makeup_gain_db, mix, static_cast<float>(ctx.sample_rate));
+        if (!state) {
+            errors.push_back("Failed to allocate compressor state for " + node.id);
+            return blocks;
+        }
+        ctx.allocated_states.push_back(state);
+
+        // Register modulatable parameters
+        ctx.params[node.id + ":threshold_db"] = &state->threshold_db;
+        ctx.params[node.id + ":ratio"] = &state->ratio;
+        ctx.params[node.id + ":attack_ms"] = &state->attack_ms;
+        ctx.params[node.id + ":release_ms"] = &state->release_ms;
+        ctx.params[node.id + ":makeup_gain_db"] = &state->makeup_gain_db;
+        ctx.params[node.id + ":mix"] = &state->mix;
+
+        // Find input buffer
+        uint32_t in_buf = 0;
+        for (const auto& conn : graph.connections) {
+            if (conn.to.node == node.id && conn.to.port == "in") {
+                std::string src_ref = conn.from.node + ":" + conn.from.port;
+                in_buf = get_buffer(ctx, src_ref);
+                break;
+            }
+        }
+
+        std::string out_ref = node.id + ":out";
+        uint32_t out_buf = allocate_buffer(ctx, out_ref);
+
+        DSPBlock block;
+        block.fn = compressor_op;
+        block.in_a = in_buf;
+        block.in_b = 0;
+        block.out = out_buf;
+        block.state = state;
+        blocks.push_back(block);
+    }
+    else if (node.type == "overdrive") {
+        // Parse overdrive parameters
+        float drive = get_param<float>(node.params, "drive", 0.5f);
+        float tone = get_param<float>(node.params, "tone", 0.5f);
+        float level = get_param<float>(node.params, "level", 1.0f);
+        std::string type = get_param<std::string>(node.params, "type", "soft");
+        float mix = get_param<float>(node.params, "mix", 1.0f);
+
+        // Create overdrive state
+        OverdriveState* state = overdrive_state_create(drive, tone, level, type, mix,
+                                                        static_cast<float>(ctx.sample_rate));
+        if (!state) {
+            errors.push_back("Failed to allocate overdrive state for " + node.id);
+            return blocks;
+        }
+        ctx.allocated_states.push_back(state);
+
+        // Register modulatable parameters
+        ctx.params[node.id + ":drive"] = &state->drive;
+        ctx.params[node.id + ":tone"] = &state->tone;
+        ctx.params[node.id + ":level"] = &state->level;
+        ctx.params[node.id + ":mix"] = &state->mix;
+
+        // Find input buffer
+        uint32_t in_buf = 0;
+        for (const auto& conn : graph.connections) {
+            if (conn.to.node == node.id && conn.to.port == "in") {
+                std::string src_ref = conn.from.node + ":" + conn.from.port;
+                in_buf = get_buffer(ctx, src_ref);
+                break;
+            }
+        }
+
+        std::string out_ref = node.id + ":out";
+        uint32_t out_buf = allocate_buffer(ctx, out_ref);
+
+        DSPBlock block;
+        block.fn = overdrive_op;
+        block.in_a = in_buf;
+        block.in_b = 0;
+        block.out = out_buf;
+        block.state = state;
+        blocks.push_back(block);
+    }
+    else if (node.type == "autowah") {
+        // Parse autowah parameters
+        float sensitivity = get_param<float>(node.params, "sensitivity", 0.5f);
+        float attack_ms = get_param<float>(node.params, "attack_ms", 10.0f);
+        float release_ms = get_param<float>(node.params, "release_ms", 200.0f);
+        float frequency_min_hz = get_param<float>(node.params, "frequency_min_hz", 300.0f);
+        float frequency_max_hz = get_param<float>(node.params, "frequency_max_hz", 3000.0f);
+        float resonance = get_param<float>(node.params, "resonance", 2.0f);
+        float mix = get_param<float>(node.params, "mix", 1.0f);
+
+        // Create autowah state
+        AutoWahState* state = autowah_state_create(sensitivity, attack_ms, release_ms,
+                                                     frequency_min_hz, frequency_max_hz, resonance, mix,
+                                                     static_cast<float>(ctx.sample_rate));
+        if (!state) {
+            errors.push_back("Failed to allocate autowah state for " + node.id);
+            return blocks;
+        }
+        ctx.allocated_states.push_back(state);
+
+        // Register modulatable parameters
+        ctx.params[node.id + ":sensitivity"] = &state->sensitivity;
+        ctx.params[node.id + ":attack_ms"] = &state->attack_ms;
+        ctx.params[node.id + ":release_ms"] = &state->release_ms;
+        ctx.params[node.id + ":frequency_min_hz"] = &state->frequency_min_hz;
+        ctx.params[node.id + ":frequency_max_hz"] = &state->frequency_max_hz;
+        ctx.params[node.id + ":resonance"] = &state->resonance;
+        ctx.params[node.id + ":mix"] = &state->mix;
+
+        // Find input buffer
+        uint32_t in_buf = 0;
+        for (const auto& conn : graph.connections) {
+            if (conn.to.node == node.id && conn.to.port == "in") {
+                std::string src_ref = conn.from.node + ":" + conn.from.port;
+                in_buf = get_buffer(ctx, src_ref);
+                break;
+            }
+        }
+
+        std::string out_ref = node.id + ":out";
+        uint32_t out_buf = allocate_buffer(ctx, out_ref);
+
+        DSPBlock block;
+        block.fn = autowah_op;
         block.in_a = in_buf;
         block.in_b = 0;
         block.out = out_buf;
