@@ -1,0 +1,21 @@
+{
+  "dpt_version": 1,
+  "audio": {
+    "inputs": ["L", "R"],
+    "outputs": ["L", "R"]
+  },
+  "nodes": {
+    "input": {
+      "type": "input",
+      "outputs": ["L", "R"]
+    },
+    "output": {
+      "type": "output",
+      "inputs": ["L", "R"]
+    }
+  },
+  "connections": [
+    { "from": "input:L", "to": "output:L" },
+    { "from": "input:R", "to": "output:R" }
+  ]
+}

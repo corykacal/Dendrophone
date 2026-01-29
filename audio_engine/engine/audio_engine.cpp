@@ -89,7 +89,8 @@ void AudioEngine::audio_thread() {
 
         DSPProgram* p = active_program_.load(std::memory_order_acquire);
         if (p) {
-            p->process(input, output, buffer_samples);
+            // Pass frames (not total samples) - process() handles interleaving
+            p->process(input, output, frames);
         } else {
             memcpy(output, input, buffer_samples * sizeof(float));
         }

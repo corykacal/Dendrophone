@@ -1,24 +1,12 @@
-#include "../core/dsp_block.h"
+#include "delay.h"
 #include <cstdlib>
 #include <cstring>
 
-// Delay effect with ring buffer
-// RT-safe: no allocations, no locks during process
-
-struct DelayState {
-    float* buffer;          // Ring buffer (preallocated)
-    uint32_t buffer_size;   // Total ring buffer size in samples
-    uint32_t write_pos;     // Current write position
-    uint32_t delay_samples; // Delay length in samples
-    float feedback;         // Feedback amount (0.0 - 1.0)
-    float mix;              // Wet/dry mix (0.0 = dry, 1.0 = wet)
-};
-
 // Create delay state - call from control thread only
-inline DelayState* delay_state_create(uint32_t max_delay_samples,
-                                       uint32_t delay_samples,
-                                       float feedback = 0.0f,
-                                       float mix = 1.0f) {
+DelayState* delay_state_create(uint32_t max_delay_samples,
+                                uint32_t delay_samples,
+                                float feedback,
+                                float mix) {
     DelayState* state = static_cast<DelayState*>(
         aligned_alloc(64, sizeof(DelayState)));
     if (!state) return nullptr;
@@ -41,7 +29,7 @@ inline DelayState* delay_state_create(uint32_t max_delay_samples,
 }
 
 // Destroy delay state - call from control thread only
-inline void delay_state_destroy(DelayState* state) {
+void delay_state_destroy(DelayState* state) {
     if (!state) return;
     if (state->buffer) free(state->buffer);
     free(state);

@@ -47,9 +47,32 @@ Note: `sudo` is required for real-time thread priority (SCHED_FIFO).
 ## Architecture
 
 ```
+.dpt file → DptParser → Graph AST → [Compiler] → DSPProgram (RT)
+                                         ↓
 ADC → AudioDevice::read() → AudioEngine → DSPProgram → AudioDevice::write() → DAC
 ```
 
 - Audio thread: lock-free, allocation-free, deterministic
 - Control thread: heap allowed, graph construction
 - DSP program: precompiled, immutable during execution
+
+## .dpt File Format
+
+Human-readable JSON graph description:
+
+```json
+{
+  "dpt_version": 1,
+  "audio": { "inputs": ["L", "R"], "outputs": ["L", "R"] },
+  "nodes": {
+    "input": { "type": "input", "outputs": ["L", "R"] },
+    "delay": { "type": "delay", "inputs": ["in"], "outputs": ["out"],
+               "params": { "time_ms": 250, "feedback": 0.4, "mix": 0.5 } },
+    "output": { "type": "output", "inputs": ["L", "R"] }
+  },
+  "connections": [
+    { "from": "input:L", "to": "delay:in" },
+    { "from": "delay:out", "to": "output:L" }
+  ]
+}
+```

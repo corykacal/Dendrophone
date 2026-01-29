@@ -10,8 +10,11 @@
 // Creates immutable, preallocated programs for hot-swap into audio thread
 class DSPProgramBuilder {
 public:
-    explicit DSPProgramBuilder(uint32_t buffer_size, uint32_t num_buffers)
-        : buffer_size_(buffer_size), num_buffers_(num_buffers) {
+    // buffer_size: samples per buffer (typically = frames per buffer)
+    // num_buffers: total number of buffers needed
+    // num_channels: audio channels (e.g., 2 for stereo)
+    explicit DSPProgramBuilder(uint32_t buffer_size, uint32_t num_buffers, uint32_t num_channels = 2)
+        : buffer_size_(buffer_size), num_buffers_(num_buffers), num_channels_(num_channels) {
     }
 
     // Add a DSP block to the program
@@ -66,6 +69,7 @@ public:
         program->buffer_size = buffer_size_;
         program->input_buffer = input_buffer_;
         program->output_buffer = output_buffer_;
+        program->num_channels = num_channels_;
 
         return program;
     }
@@ -89,6 +93,7 @@ public:
 private:
     uint32_t buffer_size_;
     uint32_t num_buffers_;
+    uint32_t num_channels_;
     uint32_t input_buffer_ = 0;
     uint32_t output_buffer_ = 1;
     std::vector<DSPBlock> blocks_;
