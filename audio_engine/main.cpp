@@ -48,8 +48,8 @@ int main(int argc, char* argv[]) {
     }
 
     AlsaAudioDevice::Config config;
-    config.capture_device = "hw:2,0";
-    config.playback_device = "hw:2,0";
+    config.capture_device = "hw:0,0";
+    config.playback_device = "hw:0,0";
     config.sample_rate = 48000;
     config.buffer_frames = buffer_frames;
     config.periods = 2;

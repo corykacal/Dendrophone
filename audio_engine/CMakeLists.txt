@@ -31,6 +31,34 @@ target_link_libraries(dendrophone_io PUBLIC
     dendrophone_core
 )
 
+# Effects library
+add_library(dendrophone_effects STATIC
+    effects/delay.cpp
+    effects/lfo.cpp
+    effects/reverb.cpp
+    effects/pitch_shift.cpp
+)
+target_include_directories(dendrophone_effects PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
+target_link_libraries(dendrophone_effects PUBLIC
+    dendrophone_core
+)
+
+# Graph library
+add_library(dendrophone_graph STATIC
+    graph/dpt_parser.cpp
+    graph/graph_normalizer.cpp
+    graph/graph_compiler.cpp
+)
+target_include_directories(dendrophone_graph PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
+target_link_libraries(dendrophone_graph PUBLIC
+    dendrophone_core
+    dendrophone_effects
+)
+
 # Engine library
 add_library(dendrophone_engine STATIC
     engine/audio_engine.cpp
@@ -41,6 +69,7 @@ target_include_directories(dendrophone_engine PUBLIC
 target_link_libraries(dendrophone_engine PUBLIC
     dendrophone_io
     dendrophone_core
+    dendrophone_graph
     pthread
 )
 

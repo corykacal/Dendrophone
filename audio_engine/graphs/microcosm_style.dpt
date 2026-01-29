@@ -1,0 +1,135 @@
+{
+  "dpt_version": 1,
+  "audio": {
+    "inputs": ["L", "R"],
+    "outputs": ["L", "R"]
+  },
+  "nodes": {
+    "input": {
+      "type": "input",
+      "outputs": ["L", "R"]
+    },
+    "lfo_grain_size": {
+      "type": "lfo",
+      "rate": "control",
+      "outputs": ["value"],
+      "params": {
+        "wave": "sine",
+        "freq_hz": 0.15,
+        "depth": 40.0
+      }
+    },
+    "lfo_filter": {
+      "type": "lfo",
+      "rate": "control",
+      "outputs": ["value"],
+      "params": {
+        "wave": "triangle",
+        "freq_hz": 0.25,
+        "depth": 3000.0
+      }
+    },
+    "lfo_freeze": {
+      "type": "lfo",
+      "rate": "control",
+      "outputs": ["value"],
+      "params": {
+        "wave": "random",
+        "freq_hz": 0.3,
+        "depth": 0.5
+      }
+    },
+    "looper": {
+      "type": "looper",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "params": {
+        "speed": 1.0,
+        "feedback": 0.6,
+        "mix": 1.0,
+        "record_trigger": 0.0,
+        "play_trigger": 0.0,
+        "overdub_trigger": 0.0,
+        "clear_trigger": 0.0
+      }
+    },
+    "granular": {
+      "type": "granular",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "param_inputs": ["grain_size_ms"],
+      "params": {
+        "grain_size_ms": 60.0,
+        "density": 20.0,
+        "pitch_shift": 0.0,
+        "pitch_random": 0.3,
+        "position_random": 0.4,
+        "window": "hann",
+        "mix": 0.6
+      }
+    },
+    "glitch": {
+      "type": "glitch",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "param_inputs": ["freeze"],
+      "params": {
+        "freeze": 0.25,
+        "stutter_rate_hz": 12.0,
+        "capture_size_ms": 80.0,
+        "speed": 1.0,
+        "randomize": 0.6,
+        "mix": 0.4
+      }
+    },
+    "reverse": {
+      "type": "reverse",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "params": {
+        "buffer_time_ms": 300.0,
+        "mix": 0.3,
+        "enabled": 0.5
+      }
+    },
+    "filter": {
+      "type": "svfilter",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "param_inputs": ["cutoff"],
+      "params": {
+        "mode": "lowpass",
+        "cutoff": 4000.0,
+        "resonance": 2.5,
+        "mix": 0.8
+      }
+    },
+    "reverb": {
+      "type": "reverb",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "params": {
+        "decay": 0.7,
+        "room_size": 0.8,
+        "mix": 0.4
+      }
+    },
+    "output": {
+      "type": "output",
+      "inputs": ["L", "R"]
+    }
+  },
+  "connections": [
+    { "from": "input:L", "to": "looper:in" },
+    { "from": "looper:out", "to": "granular:in" },
+    { "from": "lfo_grain_size:value", "to": "granular:grain_size_ms" },
+    { "from": "granular:out", "to": "glitch:in" },
+    { "from": "lfo_freeze:value", "to": "glitch:freeze" },
+    { "from": "glitch:out", "to": "reverse:in" },
+    { "from": "reverse:out", "to": "filter:in" },
+    { "from": "lfo_filter:value", "to": "filter:cutoff" },
+    { "from": "filter:out", "to": "reverb:in" },
+    { "from": "reverb:out", "to": "output:L" },
+    { "from": "reverb:out", "to": "output:R" }
+  ]
+}

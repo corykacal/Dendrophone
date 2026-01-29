@@ -1,0 +1,102 @@
+{
+  "dpt_version": 1,
+  "audio": {
+    "inputs": ["L", "R"],
+    "outputs": ["L", "R"]
+  },
+  "nodes": {
+    "input": {
+      "type": "input",
+      "outputs": ["L", "R"]
+    },
+    "lfo_reverse": {
+      "type": "lfo",
+      "rate": "control",
+      "outputs": ["value"],
+      "params": {
+        "wave": "sine",
+        "freq_hz": 0.06,
+        "depth": 0.6
+      }
+    },
+    "lfo_filter": {
+      "type": "lfo",
+      "rate": "control",
+      "outputs": ["value"],
+      "params": {
+        "wave": "sine",
+        "freq_hz": 0.09,
+        "depth": 500.0
+      }
+    },
+    "lfo_room": {
+      "type": "lfo",
+      "rate": "control",
+      "outputs": ["value"],
+      "params": {
+        "wave": "triangle",
+        "freq_hz": 0.04,
+        "depth": 0.1
+      }
+    },
+    "delay_pre": {
+      "type": "delay",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "params": {
+        "time_ms": 350.0,
+        "feedback": 0.4,
+        "mix": 0.5
+      }
+    },
+    "reverse": {
+      "type": "reverse",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "param_inputs": ["enabled", "buffer_time_ms"],
+      "params": {
+        "buffer_time_ms": 1200.0,
+        "mix": 0.7,
+        "enabled": 0.4
+      }
+    },
+    "filter": {
+      "type": "svfilter",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "param_inputs": ["cutoff"],
+      "params": {
+        "mode": "lowpass",
+        "cutoff": 700.0,
+        "resonance": 3.0,
+        "mix": 1.0
+      }
+    },
+    "reverb": {
+      "type": "reverb",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "param_inputs": ["room_size"],
+      "params": {
+        "decay": 0.8,
+        "mix": 0.65,
+        "room_size": 0.85
+      }
+    },
+    "output": {
+      "type": "output",
+      "inputs": ["L", "R"]
+    }
+  },
+  "connections": [
+    { "from": "input:L", "to": "delay_pre:in" },
+    { "from": "delay_pre:out", "to": "reverse:in" },
+    { "from": "lfo_reverse:value", "to": "reverse:enabled" },
+    { "from": "reverse:out", "to": "filter:in" },
+    { "from": "lfo_filter:value", "to": "filter:cutoff" },
+    { "from": "filter:out", "to": "reverb:in" },
+    { "from": "lfo_room:value", "to": "reverb:room_size" },
+    { "from": "reverb:out", "to": "output:L" },
+    { "from": "reverb:out", "to": "output:R" }
+  ]
+}

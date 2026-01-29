@@ -1,0 +1,71 @@
+{
+  "dpt_version": 1,
+  "audio": {
+    "inputs": ["L", "R"],
+    "outputs": ["L", "R"]
+  },
+  "nodes": {
+    "input": {
+      "type": "input",
+      "outputs": ["L", "R"]
+    },
+    "lfo_filter": {
+      "type": "lfo",
+      "rate": "control",
+      "outputs": ["value"],
+      "params": {
+        "wave": "sine",
+        "freq_hz": 0.1,
+        "depth": 800.0
+      }
+    },
+    "filter_pre": {
+      "type": "svfilter",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "param_inputs": ["cutoff"],
+      "params": {
+        "mode": "lowpass",
+        "cutoff": 1000.0,
+        "resonance": 2.5,
+        "mix": 1.0
+      }
+    },
+    "granular": {
+      "type": "granular",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "params": {
+        "grain_size_ms": 40.0,
+        "density": 18.0,
+        "pitch_shift": -7.0,
+        "pitch_random": 3.0,
+        "position_random": 150.0,
+        "window": "hann",
+        "mix": 1.0
+      }
+    },
+    "reverb": {
+      "type": "reverb",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "params": {
+        "decay": 0.75,
+        "mix": 0.45,
+        "room_size": 0.85
+      }
+    },
+    "output": {
+      "type": "output",
+      "inputs": ["L", "R"]
+    }
+  },
+  "connections": [
+    { "from": "input:L", "to": "filter_pre:in" },
+    { "from": "lfo_filter:value", "to": "filter_pre:cutoff" },
+    { "from": "filter_pre:out", "to": "granular:in" },
+    { "from": "granular:out", "to": "reverb:in" },
+    { "from": "reverb:out", "to": "output:L" },
+    { "from": "reverb:out", "to": "output:R" }
+  ]
+}

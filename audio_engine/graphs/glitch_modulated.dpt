@@ -1,0 +1,47 @@
+{
+  "dpt_version": 1,
+  "audio": {
+    "inputs": ["L", "R"],
+    "outputs": ["L", "R"]
+  },
+  "nodes": {
+    "input": {
+      "type": "input",
+      "outputs": ["L", "R"]
+    },
+    "lfo_stutter": {
+      "type": "lfo",
+      "rate": "control",
+      "outputs": ["value"],
+      "params": {
+        "wave": "triangle",
+        "freq_hz": 0.3,
+        "depth": 10.0
+      }
+    },
+    "glitch": {
+      "type": "glitch",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "param_inputs": ["stutter_rate_hz"],
+      "params": {
+        "freeze": 1.0,
+        "stutter_rate_hz": 12.0,
+        "capture_size_ms": 150.0,
+        "speed": 1.0,
+        "randomize": 0.3,
+        "mix": 1.0
+      }
+    },
+    "output": {
+      "type": "output",
+      "inputs": ["L", "R"]
+    }
+  },
+  "connections": [
+    { "from": "input:L", "to": "glitch:in" },
+    { "from": "lfo_stutter:value", "to": "glitch:stutter_rate_hz" },
+    { "from": "glitch:out", "to": "output:L" },
+    { "from": "glitch:out", "to": "output:R" }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "dpt_version": 1,
+  "audio": {
+    "inputs": ["L", "R"],
+    "outputs": ["L", "R"]
+  },
+  "nodes": {
+    "input": {
+      "type": "input",
+      "outputs": ["L", "R"]
+    },
+    "granular": {
+      "type": "granular",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "params": {
+        "grain_size_ms": 150.0,
+        "density": 30.0,
+        "pitch_shift": 0.0,
+        "pitch_random": 0.2,
+        "position_random": 10.0,
+        "window": "tukey",
+        "mix": 1.0
+      }
+    },
+    "reverb": {
+      "type": "reverb",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "params": {
+        "decay": 0.9,
+        "mix": 0.7,
+        "room_size": 0.95
+      }
+    },
+    "output": {
+      "type": "output",
+      "inputs": ["L", "R"]
+    }
+  },
+  "connections": [
+    { "from": "input:L", "to": "granular:in" },
+    { "from": "granular:out", "to": "reverb:in" },
+    { "from": "reverb:out", "to": "output:L" },
+    { "from": "reverb:out", "to": "output:R" }
+  ]
+}

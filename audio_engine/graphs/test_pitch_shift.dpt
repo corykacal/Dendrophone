@@ -1,0 +1,32 @@
+{
+  "dpt_version": 1,
+  "audio": {
+    "inputs": ["L", "R"],
+    "outputs": ["L", "R"]
+  },
+  "nodes": {
+    "input": {
+      "type": "input",
+      "outputs": ["L", "R"]
+    },
+    "pitch_shift": {
+      "type": "pitch_shift",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "params": {
+        "pitch": 5.0,
+        "mix": 0.7
+      }
+    },
+    "output": {
+      "type": "output",
+      "inputs": ["L", "R"]
+    }
+  },
+  "connections": [
+    { "from": "input:L", "to": "pitch_shift:in" },
+    { "from": "input:R", "to": "pitch_shift:in" },
+    { "from": "pitch_shift:out", "to": "output:L" },
+    { "from": "pitch_shift:out", "to": "output:R" }
+  ]
+}
