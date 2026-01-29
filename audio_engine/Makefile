@@ -34,4 +34,4 @@ clean:
 # Dependencies
 $(BUILDDIR)/io/alsa_device.o: io/alsa_device.cpp io/alsa_device.h io/audio_device.h
 $(BUILDDIR)/engine/audio_engine.o: engine/audio_engine.cpp engine/audio_engine.h io/audio_device.h core/dsp_program.h
-$(BUILDDIR)/main.o: main.cpp io/alsa_device.h engine/audio_engine.h
+$(BUILDDIR)/main.o: main.cpp io/alsa_device.h engine/audio_engine.h core/dsp_program_builder.h core/dsp_ops.h

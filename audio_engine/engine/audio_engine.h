@@ -22,6 +22,7 @@ public:
 private:
     void audio_thread();
     void set_realtime_priority();
+    void pin_to_core(int core);
 
     AudioDevice* device_;
     std::atomic<DSPProgram*> active_program_{nullptr};

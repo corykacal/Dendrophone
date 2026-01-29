@@ -3,6 +3,7 @@
 #include <cstring>
 #include <sched.h>
 #include <pthread.h>
+#include <unistd.h>
 
 static constexpr int MAX_FRAMES = 1024;
 
@@ -54,8 +55,22 @@ void AudioEngine::set_realtime_priority() {
     }
 }
 
+void AudioEngine::pin_to_core(int core) {
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(core, &cpuset);
+
+    int result = pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
+    if (result != 0) {
+        fprintf(stderr, "AudioEngine: Failed to pin to core %d\n", core);
+    } else {
+        fprintf(stderr, "AudioEngine: Pinned to core %d\n", core);
+    }
+}
+
 void AudioEngine::audio_thread() {
     set_realtime_priority();
+    pin_to_core(3);  // Pin to core 3 (last core on CM4, isolated from system tasks)
 
     const int frames = device_->buffer_size();
     const int channels = device_->channels();
