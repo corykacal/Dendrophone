@@ -1,0 +1,34 @@
+{
+  "dpt_version": 1,
+  "audio": {
+    "inputs": ["L", "R"],
+    "outputs": ["L", "R"]
+  },
+  "nodes": {
+    "input": {
+      "type": "input",
+      "outputs": ["L", "R"]
+    },
+    "overdrive": {
+      "type": "overdrive",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "params": {
+        "drive": 0.7,
+        "tone": 0.6,
+        "level": 0.8,
+        "type": "soft",
+        "mix": 1.0
+      }
+    },
+    "output": {
+      "type": "output",
+      "inputs": ["L", "R"]
+    }
+  },
+  "connections": [
+    { "from": "input:L", "to": "overdrive:in" },
+    { "from": "overdrive:out", "to": "output:L" },
+    { "from": "overdrive:out", "to": "output:R" }
+  ]
+}

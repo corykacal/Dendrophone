@@ -1,0 +1,68 @@
+{
+  "dpt_version": 1,
+  "audio": {
+    "inputs": ["L", "R"],
+    "outputs": ["L", "R"]
+  },
+  "nodes": {
+    "input": {
+      "type": "input",
+      "outputs": ["L", "R"]
+    },
+    "pitch_root": {
+      "type": "pitch_shift",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "params": {
+        "pitch": 0.0,
+        "mix": 1.0
+      }
+    },
+    "pitch_third": {
+      "type": "pitch_shift",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "params": {
+        "pitch": 4.0,
+        "mix": 1.0
+      }
+    },
+    "pitch_fifth": {
+      "type": "pitch_shift",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "params": {
+        "pitch": 7.0,
+        "mix": 1.0
+      }
+    },
+    "mix_chord": {
+      "type": "mix",
+      "inputs": ["in_a", "in_b", "in_c"],
+      "outputs": ["out"]
+    },
+    "gain_normalize": {
+      "type": "gain",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "params": {
+        "gain": 0.33
+      }
+    },
+    "output": {
+      "type": "output",
+      "inputs": ["L", "R"]
+    }
+  },
+  "connections": [
+    { "from": "input:L", "to": "pitch_root:in" },
+    { "from": "input:L", "to": "pitch_third:in" },
+    { "from": "input:L", "to": "pitch_fifth:in" },
+    { "from": "pitch_root:out", "to": "mix_chord:in_a" },
+    { "from": "pitch_third:out", "to": "mix_chord:in_b" },
+    { "from": "pitch_fifth:out", "to": "mix_chord:in_c" },
+    { "from": "mix_chord:out", "to": "gain_normalize:in" },
+    { "from": "gain_normalize:out", "to": "output:L" },
+    { "from": "gain_normalize:out", "to": "output:R" }
+  ]
+}

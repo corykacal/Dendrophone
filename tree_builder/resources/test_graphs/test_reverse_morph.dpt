@@ -1,0 +1,44 @@
+{
+  "dpt_version": 1,
+  "audio": {
+    "inputs": ["L", "R"],
+    "outputs": ["L", "R"]
+  },
+  "nodes": {
+    "input": {
+      "type": "input",
+      "outputs": ["L", "R"]
+    },
+    "lfo_morph": {
+      "type": "lfo",
+      "rate": "control",
+      "outputs": ["value"],
+      "params": {
+        "wave": "triangle",
+        "freq_hz": 0.25,
+        "depth": 1.0
+      }
+    },
+    "reverse": {
+      "type": "reverse",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "param_inputs": ["enabled"],
+      "params": {
+        "buffer_time_ms": 800.0,
+        "mix": 1.0,
+        "enabled": 0.0
+      }
+    },
+    "output": {
+      "type": "output",
+      "inputs": ["L", "R"]
+    }
+  },
+  "connections": [
+    { "from": "input:L", "to": "reverse:in" },
+    { "from": "lfo_morph:value", "to": "reverse:enabled" },
+    { "from": "reverse:out", "to": "output:L" },
+    { "from": "reverse:out", "to": "output:R" }
+  ]
+}

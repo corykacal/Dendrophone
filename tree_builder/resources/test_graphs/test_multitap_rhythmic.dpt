@@ -1,0 +1,47 @@
+{
+  "dpt_version": 1,
+  "audio": {
+    "inputs": ["L", "R"],
+    "outputs": ["L", "R"]
+  },
+  "nodes": {
+    "input": {
+      "type": "input",
+      "outputs": ["L", "R"]
+    },
+    "multitap": {
+      "type": "multitap_delay",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "params": {
+        "tap0_time_ms": 125.0,
+        "tap0_gain": 0.9,
+        "tap1_time_ms": 250.0,
+        "tap1_gain": 0.7,
+        "tap2_time_ms": 375.0,
+        "tap2_gain": 0.6,
+        "tap3_time_ms": 500.0,
+        "tap3_gain": 0.5,
+        "tap4_time_ms": 625.0,
+        "tap4_gain": 0.4,
+        "tap5_time_ms": 750.0,
+        "tap5_gain": 0.3,
+        "tap6_time_ms": 875.0,
+        "tap6_gain": 0.2,
+        "tap7_time_ms": 1000.0,
+        "tap7_gain": 0.1,
+        "feedback": 0.2,
+        "mix": 0.7
+      }
+    },
+    "output": {
+      "type": "output",
+      "inputs": ["L", "R"]
+    }
+  },
+  "connections": [
+    { "from": "input:L", "to": "multitap:in" },
+    { "from": "multitap:out", "to": "output:L" },
+    { "from": "multitap:out", "to": "output:R" }
+  ]
+}

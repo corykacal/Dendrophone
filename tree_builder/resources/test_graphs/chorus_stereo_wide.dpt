@@ -1,0 +1,46 @@
+{
+  "dpt_version": 1,
+  "audio": {
+    "inputs": ["L", "R"],
+    "outputs": ["L", "R"]
+  },
+  "nodes": {
+    "input": {
+      "type": "input",
+      "outputs": ["L", "R"]
+    },
+    "lfo_rate": {
+      "type": "lfo",
+      "rate": "control",
+      "outputs": ["value"],
+      "params": {
+        "wave": "sine",
+        "freq_hz": 0.1,
+        "depth": 2.0
+      }
+    },
+    "chorus": {
+      "type": "chorus",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "param_inputs": ["rate_hz"],
+      "params": {
+        "rate_hz": 1.5,
+        "depth": 0.7,
+        "voices": 4,
+        "stereo_width": 1.0,
+        "mix": 0.8
+      }
+    },
+    "output": {
+      "type": "output",
+      "inputs": ["L", "R"]
+    }
+  },
+  "connections": [
+    { "from": "input:L", "to": "chorus:in" },
+    { "from": "lfo_rate:value", "to": "chorus:rate_hz" },
+    { "from": "chorus:out", "to": "output:L" },
+    { "from": "chorus:out", "to": "output:R" }
+  ]
+}

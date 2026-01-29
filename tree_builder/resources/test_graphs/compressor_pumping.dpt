@@ -1,0 +1,58 @@
+{
+  "dpt_version": 1,
+  "audio": {
+    "inputs": ["L", "R"],
+    "outputs": ["L", "R"]
+  },
+  "nodes": {
+    "input": {
+      "type": "input",
+      "outputs": ["L", "R"]
+    },
+    "lfo_threshold": {
+      "type": "lfo",
+      "rate": "control",
+      "outputs": ["value"],
+      "params": {
+        "wave": "sine",
+        "freq_hz": 0.5,
+        "depth": 10.0
+      }
+    },
+    "compressor": {
+      "type": "compressor",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "param_inputs": ["threshold_db"],
+      "params": {
+        "threshold_db": -25.0,
+        "ratio": 8.0,
+        "attack_ms": 5.0,
+        "release_ms": 50.0,
+        "makeup_gain_db": 12.0,
+        "mix": 1.0
+      }
+    },
+    "reverb": {
+      "type": "reverb",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "params": {
+        "decay": 0.5,
+        "room_size": 0.6,
+        "mix": 0.3
+      }
+    },
+    "output": {
+      "type": "output",
+      "inputs": ["L", "R"]
+    }
+  },
+  "connections": [
+    { "from": "input:L", "to": "compressor:in" },
+    { "from": "lfo_threshold:value", "to": "compressor:threshold_db" },
+    { "from": "compressor:out", "to": "reverb:in" },
+    { "from": "reverb:out", "to": "output:L" },
+    { "from": "reverb:out", "to": "output:R" }
+  ]
+}

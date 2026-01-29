@@ -1,0 +1,35 @@
+{
+  "dpt_version": 1,
+  "audio": {
+    "inputs": ["L", "R"],
+    "outputs": ["L", "R"]
+  },
+  "nodes": {
+    "input": {
+      "type": "input",
+      "outputs": ["L", "R"]
+    },
+    "glitch": {
+      "type": "glitch",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "params": {
+        "freeze": 1.0,
+        "stutter_rate_hz": 6.0,
+        "capture_size_ms": 250.0,
+        "speed": 1.5,
+        "randomize": 0.9,
+        "mix": 1.0
+      }
+    },
+    "output": {
+      "type": "output",
+      "inputs": ["L", "R"]
+    }
+  },
+  "connections": [
+    { "from": "input:L", "to": "glitch:in" },
+    { "from": "glitch:out", "to": "output:L" },
+    { "from": "glitch:out", "to": "output:R" }
+  ]
+}

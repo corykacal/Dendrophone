@@ -1,0 +1,36 @@
+{
+  "dpt_version": 1,
+  "audio": {
+    "inputs": ["L", "R"],
+    "outputs": ["L", "R"]
+  },
+  "nodes": {
+    "input": {
+      "type": "input",
+      "outputs": ["L", "R"]
+    },
+    "granular": {
+      "type": "granular",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "params": {
+        "grain_size_ms": 50.0,
+        "density": 15.0,
+        "pitch_shift": 0.0,
+        "pitch_random": 2.0,
+        "position_random": 100.0,
+        "window": "hann",
+        "mix": 1.0
+      }
+    },
+    "output": {
+      "type": "output",
+      "inputs": ["L", "R"]
+    }
+  },
+  "connections": [
+    { "from": "input:L", "to": "granular:in" },
+    { "from": "granular:out", "to": "output:L" },
+    { "from": "granular:out", "to": "output:R" }
+  ]
+}

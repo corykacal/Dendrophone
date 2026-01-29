@@ -1,0 +1,46 @@
+{
+  "dpt_version": 1,
+  "audio": {
+    "inputs": ["L", "R"],
+    "outputs": ["L", "R"]
+  },
+  "nodes": {
+    "input": {
+      "type": "input",
+      "outputs": ["L", "R"]
+    },
+    "lfo_depth": {
+      "type": "lfo",
+      "rate": "control",
+      "outputs": ["value"],
+      "params": {
+        "wave": "sine",
+        "freq_hz": 0.25,
+        "depth": 0.3
+      }
+    },
+    "tremolo": {
+      "type": "tremolo",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "param_inputs": ["depth"],
+      "params": {
+        "rate_hz": 6.0,
+        "depth": 0.6,
+        "waveform": "square",
+        "stereo_phase": 0.5,
+        "mix": 1.0
+      }
+    },
+    "output": {
+      "type": "output",
+      "inputs": ["L", "R"]
+    }
+  },
+  "connections": [
+    { "from": "input:L", "to": "tremolo:in" },
+    { "from": "lfo_depth:value", "to": "tremolo:depth" },
+    { "from": "tremolo:out", "to": "output:L" },
+    { "from": "tremolo:out", "to": "output:R" }
+  ]
+}

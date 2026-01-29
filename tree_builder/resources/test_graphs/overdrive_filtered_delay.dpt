@@ -1,0 +1,69 @@
+{
+  "dpt_version": 1,
+  "audio": {
+    "inputs": ["L", "R"],
+    "outputs": ["L", "R"]
+  },
+  "nodes": {
+    "input": {
+      "type": "input",
+      "outputs": ["L", "R"]
+    },
+    "lfo_drive": {
+      "type": "lfo",
+      "rate": "control",
+      "outputs": ["value"],
+      "params": {
+        "wave": "triangle",
+        "freq_hz": 0.15,
+        "depth": 0.3
+      }
+    },
+    "overdrive": {
+      "type": "overdrive",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "param_inputs": ["drive"],
+      "params": {
+        "drive": 0.6,
+        "tone": 0.4,
+        "level": 0.9,
+        "type": "asymmetric",
+        "mix": 1.0
+      }
+    },
+    "delay": {
+      "type": "delay",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "params": {
+        "time_ms": 375.0,
+        "feedback": 0.4,
+        "mix": 0.4
+      }
+    },
+    "svfilter": {
+      "type": "svfilter",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "params": {
+        "mode": "lowpass",
+        "cutoff": 2500.0,
+        "resonance": 1.5,
+        "mix": 1.0
+      }
+    },
+    "output": {
+      "type": "output",
+      "inputs": ["L", "R"]
+    }
+  },
+  "connections": [
+    { "from": "input:L", "to": "overdrive:in" },
+    { "from": "lfo_drive:value", "to": "overdrive:drive" },
+    { "from": "overdrive:out", "to": "delay:in" },
+    { "from": "delay:out", "to": "svfilter:in" },
+    { "from": "svfilter:out", "to": "output:L" },
+    { "from": "svfilter:out", "to": "output:R" }
+  ]
+}

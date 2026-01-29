@@ -1,0 +1,43 @@
+{
+  "dpt_version": 1,
+  "audio": {
+    "inputs": ["L", "R"],
+    "outputs": ["L", "R"]
+  },
+  "nodes": {
+    "input": {
+      "type": "input",
+      "outputs": ["L", "R"]
+    },
+    "delay_L": {
+      "type": "delay",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "params": {
+        "time_ms": 375,
+        "feedback": 0.3,
+        "mix": 0.6
+      }
+    },
+    "delay_R": {
+      "type": "delay",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "params": {
+        "time_ms": 500,
+        "feedback": 0.25,
+        "mix": 0.6
+      }
+    },
+    "output": {
+      "type": "output",
+      "inputs": ["L", "R"]
+    }
+  },
+  "connections": [
+    { "from": "input:L", "to": "delay_L:in" },
+    { "from": "input:R", "to": "delay_R:in" },
+    { "from": "delay_L:out", "to": "output:L" },
+    { "from": "delay_R:out", "to": "output:R" }
+  ]
+}

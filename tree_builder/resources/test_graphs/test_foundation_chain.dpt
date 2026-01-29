@@ -1,0 +1,72 @@
+{
+  "dpt_version": 1,
+  "audio": {
+    "inputs": ["L", "R"],
+    "outputs": ["L", "R"]
+  },
+  "nodes": {
+    "input": {
+      "type": "input",
+      "outputs": ["L", "R"]
+    },
+    "lfo_filter": {
+      "type": "lfo",
+      "rate": "control",
+      "outputs": ["value"],
+      "params": {
+        "wave": "sine",
+        "freq_hz": 0.3,
+        "depth": 400.0
+      }
+    },
+    "filter": {
+      "type": "svfilter",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "param_inputs": ["cutoff"],
+      "params": {
+        "mode": "lowpass",
+        "cutoff": 600.0,
+        "resonance": 2.5,
+        "mix": 1.0
+      }
+    },
+    "multitap": {
+      "type": "multitap_delay",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "params": {
+        "tap0_time_ms": 200.0,
+        "tap0_gain": 0.7,
+        "tap1_time_ms": 400.0,
+        "tap1_gain": 0.5,
+        "tap2_time_ms": 600.0,
+        "tap2_gain": 0.3,
+        "feedback": 0.25,
+        "mix": 0.6
+      }
+    },
+    "reverse": {
+      "type": "reverse",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "params": {
+        "buffer_time_ms": 700.0,
+        "mix": 0.5,
+        "enabled": 1.0
+      }
+    },
+    "output": {
+      "type": "output",
+      "inputs": ["L", "R"]
+    }
+  },
+  "connections": [
+    { "from": "input:L", "to": "filter:in" },
+    { "from": "lfo_filter:value", "to": "filter:cutoff" },
+    { "from": "filter:out", "to": "multitap:in" },
+    { "from": "multitap:out", "to": "reverse:in" },
+    { "from": "reverse:out", "to": "output:L" },
+    { "from": "reverse:out", "to": "output:R" }
+  ]
+}

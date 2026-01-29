@@ -1,0 +1,33 @@
+{
+  "dpt_version": 1,
+  "audio": {
+    "inputs": ["L", "R"],
+    "outputs": ["L", "R"]
+  },
+  "nodes": {
+    "input": {
+      "type": "input",
+      "outputs": ["L", "R"]
+    },
+    "filter": {
+      "type": "svfilter",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "params": {
+        "mode": "lowpass",
+        "cutoff": 1000.0,
+        "resonance": 2.0,
+        "mix": 1.0
+      }
+    },
+    "output": {
+      "type": "output",
+      "inputs": ["L", "R"]
+    }
+  },
+  "connections": [
+    { "from": "input:L", "to": "filter:in" },
+    { "from": "filter:out", "to": "output:L" },
+    { "from": "filter:out", "to": "output:R" }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "dpt_version": 1,
+  "audio": {
+    "inputs": ["L", "R"],
+    "outputs": ["L", "R"]
+  },
+  "nodes": {
+    "input": {
+      "type": "input",
+      "outputs": ["L", "R"]
+    },
+    "lfo_pitch": {
+      "type": "lfo",
+      "rate": "control",
+      "outputs": ["value"],
+      "params": {
+        "wave": "sine",
+        "freq_hz": 0.4,
+        "depth": 2.0
+      }
+    },
+    "lfo_reverb": {
+      "type": "lfo",
+      "rate": "control",
+      "outputs": ["value"],
+      "params": {
+        "wave": "triangle",
+        "freq_hz": 0.2,
+        "depth": 0.15
+      }
+    },
+    "pitch_shift": {
+      "type": "pitch_shift",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "param_inputs": ["pitch"],
+      "params": {
+        "pitch": 0.0,
+        "mix": 0.6
+      }
+    },
+    "reverb": {
+      "type": "reverb",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "param_inputs": ["decay"],
+      "params": {
+        "decay": 0.6,
+        "mix": 0.4,
+        "room_size": 0.8
+      }
+    },
+    "output": {
+      "type": "output",
+      "inputs": ["L", "R"]
+    }
+  },
+  "connections": [
+    { "from": "input:L", "to": "pitch_shift:in" },
+    { "from": "input:R", "to": "pitch_shift:in" },
+    { "from": "lfo_pitch:value", "to": "pitch_shift:pitch" },
+    { "from": "pitch_shift:out", "to": "reverb:in" },
+    { "from": "lfo_reverb:value", "to": "reverb:decay" },
+    { "from": "reverb:out", "to": "output:L" },
+    { "from": "reverb:out", "to": "output:R" }
+  ]
+}

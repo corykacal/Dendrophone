@@ -1,0 +1,70 @@
+{
+  "dpt_version": 1,
+  "audio": {
+    "inputs": ["L", "R"],
+    "outputs": ["L", "R"]
+  },
+  "nodes": {
+    "input": {
+      "type": "input",
+      "outputs": ["L", "R"]
+    },
+    "lfo_density": {
+      "type": "lfo",
+      "rate": "control",
+      "outputs": ["value"],
+      "params": {
+        "wave": "sine",
+        "freq_hz": 0.15,
+        "depth": 15.0
+      }
+    },
+    "lfo_grain_size": {
+      "type": "lfo",
+      "rate": "control",
+      "outputs": ["value"],
+      "params": {
+        "wave": "triangle",
+        "freq_hz": 0.08,
+        "depth": 30.0
+      }
+    },
+    "granular": {
+      "type": "granular",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "param_inputs": ["density", "grain_size_ms"],
+      "params": {
+        "grain_size_ms": 30.0,
+        "density": 25.0,
+        "pitch_shift": 0.0,
+        "pitch_random": 5.0,
+        "position_random": 200.0,
+        "window": "hann",
+        "mix": 1.0
+      }
+    },
+    "reverb": {
+      "type": "reverb",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "params": {
+        "decay": 0.7,
+        "mix": 0.4,
+        "room_size": 0.8
+      }
+    },
+    "output": {
+      "type": "output",
+      "inputs": ["L", "R"]
+    }
+  },
+  "connections": [
+    { "from": "input:L", "to": "granular:in" },
+    { "from": "lfo_density:value", "to": "granular:density" },
+    { "from": "lfo_grain_size:value", "to": "granular:grain_size_ms" },
+    { "from": "granular:out", "to": "reverb:in" },
+    { "from": "reverb:out", "to": "output:L" },
+    { "from": "reverb:out", "to": "output:R" }
+  ]
+}
