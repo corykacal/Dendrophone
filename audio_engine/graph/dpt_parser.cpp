@@ -92,7 +92,20 @@ ParseResult DptParser::parse(const std::string& json_str) {
         }
         node.type = node_json["type"].get<std::string>();
 
-        // Parse inputs
+        // Parse rate (default: audio)
+        if (node_json.contains("rate")) {
+            std::string rate_str = node_json["rate"].get<std::string>();
+            if (rate_str == "control") {
+                node.rate = SignalRate::Control;
+            } else if (rate_str == "audio") {
+                node.rate = SignalRate::Audio;
+            } else {
+                result.warnings.push_back("Unknown rate '" + rate_str + "' for node '" +
+                                          node_id + "', defaulting to audio");
+            }
+        }
+
+        // Parse inputs (audio inputs)
         if (node_json.contains("inputs")) {
             for (const auto& inp : node_json["inputs"]) {
                 node.inputs.push_back(inp.get<std::string>());
@@ -103,6 +116,13 @@ ParseResult DptParser::parse(const std::string& json_str) {
         if (node_json.contains("outputs")) {
             for (const auto& out : node_json["outputs"]) {
                 node.outputs.push_back(out.get<std::string>());
+            }
+        }
+
+        // Parse param_inputs (modulatable parameters)
+        if (node_json.contains("param_inputs")) {
+            for (const auto& pi : node_json["param_inputs"]) {
+                node.param_inputs.push_back(pi.get<std::string>());
             }
         }
 
@@ -185,7 +205,7 @@ std::vector<std::string> DptParser::validate(const Graph& graph) {
 
     // Collect all valid port references
     std::set<std::string> valid_outputs;  // Ports that can be read from
-    std::set<std::string> valid_inputs;   // Ports that can be written to
+    std::set<std::string> valid_inputs;   // Ports that can be written to (audio + param)
 
     for (const auto& [id, node] : graph.nodes) {
         for (const auto& out : node.outputs) {
@@ -193,6 +213,10 @@ std::vector<std::string> DptParser::validate(const Graph& graph) {
         }
         for (const auto& inp : node.inputs) {
             valid_inputs.insert(id + ":" + inp);
+        }
+        // Param inputs are also valid connection destinations
+        for (const auto& pi : node.param_inputs) {
+            valid_inputs.insert(id + ":" + pi);
         }
     }
 

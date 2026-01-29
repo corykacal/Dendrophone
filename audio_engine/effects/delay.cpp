@@ -1,12 +1,14 @@
 #include "delay.h"
 #include <cstdlib>
 #include <cstring>
+#include <algorithm>
 
 // Create delay state - call from control thread only
 DelayState* delay_state_create(uint32_t max_delay_samples,
                                 uint32_t delay_samples,
                                 float feedback,
-                                float mix) {
+                                float mix,
+                                float sample_rate) {
     DelayState* state = static_cast<DelayState*>(
         aligned_alloc(64, sizeof(DelayState)));
     if (!state) return nullptr;
@@ -21,9 +23,25 @@ DelayState* delay_state_create(uint32_t max_delay_samples,
     memset(state->buffer, 0, max_delay_samples * sizeof(float));
     state->buffer_size = max_delay_samples;
     state->write_pos = 0;
-    state->delay_samples = delay_samples;
-    state->feedback = feedback;
-    state->mix = mix;
+    state->max_delay_samples = max_delay_samples;
+    state->sample_rate = sample_rate;
+
+    // Initialize modulatable parameters
+    float time_ms = delay_samples * 1000.0f / sample_rate;
+    state->time_ms.base = time_ms;
+    state->time_ms.mod = 0.0f;
+    state->time_ms.smoothed = time_ms;
+    state->time_ms.set_smoothing(5.0f, sample_rate);  // 5ms smoothing to avoid clicks
+
+    state->feedback.base = feedback;
+    state->feedback.mod = 0.0f;
+    state->feedback.smoothed = feedback;
+    state->feedback.smooth_coeff = 0.0f;  // No smoothing needed
+
+    state->mix.base = mix;
+    state->mix.mod = 0.0f;
+    state->mix.smoothed = mix;
+    state->mix.smooth_coeff = 0.0f;
 
     return state;
 }
@@ -50,9 +68,15 @@ void delay_op(DSPBlock& b, float* buffers, int n) {
     float* out = &buffers[b.out * n];
     float* ring = state->buffer;
     const uint32_t ring_size = state->buffer_size;
-    const uint32_t delay = state->delay_samples;
-    const float feedback = state->feedback;
-    const float mix = state->mix;
+
+    // Get modulated parameter values (smoothed for time to avoid clicks)
+    float time_ms = state->time_ms.get_smoothed();
+    uint32_t delay = static_cast<uint32_t>(time_ms * state->sample_rate / 1000.0f);
+    delay = std::min(delay, state->max_delay_samples - 1);
+    delay = std::max(delay, 1u);
+
+    const float feedback = std::clamp(state->feedback.get(), 0.0f, 0.99f);
+    const float mix = std::clamp(state->mix.get(), 0.0f, 1.0f);
     const float dry = 1.0f - mix;
 
     uint32_t write_pos = state->write_pos;

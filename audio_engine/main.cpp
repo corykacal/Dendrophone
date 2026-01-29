@@ -48,8 +48,8 @@ int main(int argc, char* argv[]) {
     }
 
     AlsaAudioDevice::Config config;
-    config.capture_device = "hw:0,0";
-    config.playback_device = "hw:0,0";
+    config.capture_device = "hw:2,0";
+    config.playback_device = "hw:2,0";
     config.sample_rate = 48000;
     config.buffer_frames = buffer_frames;
     config.periods = 2;
@@ -97,7 +97,9 @@ int main(int argc, char* argv[]) {
         compile_result = GraphCompiler::compile(norm_result.graph,
                                                  config.sample_rate,
                                                  config.buffer_frames,
-                                                 config.channels);
+                                                 config.channels,
+                                                 norm_result.control_nodes,
+                                                 norm_result.audio_nodes);
         if (!compile_result.success) {
             fprintf(stderr, "Compile failed:\n");
             for (const auto& e : compile_result.errors) {
@@ -110,8 +112,9 @@ int main(int argc, char* argv[]) {
         program = compile_result.program;
         using_compiled_graph = true;
 
-        fprintf(stderr, "Compiled: %u blocks, %u buffers\n",
-                program->num_blocks, compile_result.num_buffers);
+        fprintf(stderr, "Compiled: %u control blocks, %u audio blocks, %u buffers, %u control buffers\n",
+                program->num_control_blocks, program->num_audio_blocks,
+                compile_result.num_buffers, compile_result.num_control_buffers);
     } else {
         // Default: passthrough
         fprintf(stderr, "\nNo .dpt file specified, using passthrough\n");

@@ -8,7 +8,7 @@ LDFLAGS = -lasound -lpthread
 SRCDIR = .
 BUILDDIR = build
 
-SOURCES = io/alsa_device.cpp engine/audio_engine.cpp graph/dpt_parser.cpp graph/graph_normalizer.cpp graph/graph_compiler.cpp effects/delay.cpp main.cpp
+SOURCES = io/alsa_device.cpp engine/audio_engine.cpp graph/dpt_parser.cpp graph/graph_normalizer.cpp graph/graph_compiler.cpp effects/delay.cpp effects/lfo.cpp main.cpp
 OBJECTS = $(SOURCES:%.cpp=$(BUILDDIR)/%.o)
 TARGET = $(BUILDDIR)/dendrophone
 

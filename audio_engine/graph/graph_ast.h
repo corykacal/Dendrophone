@@ -9,6 +9,12 @@
 using ParamValue = std::variant<int, float, bool, std::string>;
 using ParamMap = std::unordered_map<std::string, ParamValue>;
 
+// Signal rate for nodes
+enum class SignalRate {
+    Audio,    // Runs at sample rate
+    Control   // Runs once per block (for LFOs, envelopes, etc.)
+};
+
 // Reference to a specific port on a node (e.g., "delay1:out")
 struct PortRef {
     std::string node;
@@ -29,8 +35,10 @@ struct GraphConnection {
 struct GraphNode {
     std::string id;
     std::string type;
-    std::vector<std::string> inputs;
-    std::vector<std::string> outputs;
+    SignalRate rate = SignalRate::Audio;      // Default to audio rate
+    std::vector<std::string> inputs;          // Audio inputs
+    std::vector<std::string> outputs;         // Audio/control outputs
+    std::vector<std::string> param_inputs;    // Modulatable parameter inputs
     ParamMap params;
 };
 
