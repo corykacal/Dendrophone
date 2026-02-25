@@ -14,8 +14,9 @@ FlangerState* flanger_state_create(float rate_hz,
                                      float delay_ms,
                                      float mix,
                                      float sample_rate) {
+    auto align_up = [](size_t n) -> size_t { return (n + 63) & ~size_t(63); };
     FlangerState* state = static_cast<FlangerState*>(
-        aligned_alloc(64, sizeof(FlangerState)));
+        aligned_alloc(64, align_up(sizeof(FlangerState))));
     if (!state) return nullptr;
 
     state->sample_rate = sample_rate;
@@ -23,7 +24,7 @@ FlangerState* flanger_state_create(float rate_hz,
     // Allocate delay buffer (20ms max)
     state->buffer_size = static_cast<uint32_t>(sample_rate * 0.02f);
     state->buffer = static_cast<float*>(
-        aligned_alloc(64, state->buffer_size * sizeof(float)));
+        aligned_alloc(64, align_up(state->buffer_size * sizeof(float))));
     if (!state->buffer) {
         free(state);
         return nullptr;

@@ -17,8 +17,9 @@ GlitchState* glitch_state_create(float freeze,
                                   float randomize,
                                   float mix,
                                   float sample_rate) {
+    auto align_up = [](size_t n) -> size_t { return (n + 63) & ~size_t(63); };
     GlitchState* state = static_cast<GlitchState*>(
-        aligned_alloc(64, sizeof(GlitchState)));
+        aligned_alloc(64, align_up(sizeof(GlitchState))));
     if (!state) return nullptr;
 
     state->sample_rate = sample_rate;
@@ -26,7 +27,7 @@ GlitchState* glitch_state_create(float freeze,
     // Allocate buffer (1 second max)
     state->buffer_size = static_cast<uint32_t>(sample_rate);
     state->buffer = static_cast<float*>(
-        aligned_alloc(64, state->buffer_size * sizeof(float)));
+        aligned_alloc(64, align_up(state->buffer_size * sizeof(float))));
     if (!state->buffer) {
         free(state);
         return nullptr;

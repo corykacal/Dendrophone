@@ -10,8 +10,9 @@ OverdriveState* overdrive_state_create(float drive,
                                          const std::string& type,
                                          float mix,
                                          float sample_rate) {
+    auto align_up = [](size_t n) -> size_t { return (n + 63) & ~size_t(63); };
     OverdriveState* state = static_cast<OverdriveState*>(
-        aligned_alloc(64, sizeof(OverdriveState)));
+        aligned_alloc(64, align_up(sizeof(OverdriveState))));
     if (!state) return nullptr;
 
     state->sample_rate = sample_rate;

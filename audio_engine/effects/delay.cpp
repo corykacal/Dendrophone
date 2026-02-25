@@ -9,12 +9,14 @@ DelayState* delay_state_create(uint32_t max_delay_samples,
                                 float feedback,
                                 float mix,
                                 float sample_rate) {
+    auto align_up = [](size_t n) -> size_t { return (n + 63) & ~size_t(63); };
+
     DelayState* state = static_cast<DelayState*>(
-        aligned_alloc(64, sizeof(DelayState)));
+        aligned_alloc(64, align_up(sizeof(DelayState))));
     if (!state) return nullptr;
 
     state->buffer = static_cast<float*>(
-        aligned_alloc(64, max_delay_samples * sizeof(float)));
+        aligned_alloc(64, align_up(max_delay_samples * sizeof(float))));
     if (!state->buffer) {
         free(state);
         return nullptr;

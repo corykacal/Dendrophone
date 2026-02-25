@@ -15,7 +15,8 @@ EnvelopeState* envelope_state_create(
     float release_ms,
     float sample_rate
 ) {
-    EnvelopeState* state = static_cast<EnvelopeState*>(aligned_alloc(64, sizeof(EnvelopeState)));
+    auto align_up = [](size_t n) -> size_t { return (n + 63) & ~size_t(63); };
+    EnvelopeState* state = static_cast<EnvelopeState*>(aligned_alloc(64, align_up(sizeof(EnvelopeState))));
     if (!state) return nullptr;
 
     state->type = type;

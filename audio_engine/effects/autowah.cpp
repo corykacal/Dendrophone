@@ -16,8 +16,9 @@ AutoWahState* autowah_state_create(float sensitivity,
                                      float resonance,
                                      float mix,
                                      float sample_rate) {
+    auto align_up = [](size_t n) -> size_t { return (n + 63) & ~size_t(63); };
     AutoWahState* state = static_cast<AutoWahState*>(
-        aligned_alloc(64, sizeof(AutoWahState)));
+        aligned_alloc(64, align_up(sizeof(AutoWahState))));
     if (!state) return nullptr;
 
     state->sample_rate = sample_rate;

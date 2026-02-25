@@ -10,8 +10,9 @@ MultiTapDelayState* multitap_delay_state_create(int num_taps,
                                                   float feedback,
                                                   float mix,
                                                   float sample_rate) {
+    auto align_up = [](size_t n) -> size_t { return (n + 63) & ~size_t(63); };
     MultiTapDelayState* state = static_cast<MultiTapDelayState*>(
-        aligned_alloc(64, sizeof(MultiTapDelayState)));
+        aligned_alloc(64, align_up(sizeof(MultiTapDelayState))));
     if (!state) return nullptr;
 
     state->sample_rate = sample_rate;
@@ -22,7 +23,7 @@ MultiTapDelayState* multitap_delay_state_create(int num_taps,
 
     // Allocate buffer
     state->buffer = static_cast<float*>(
-        aligned_alloc(64, state->buffer_size * sizeof(float)));
+        aligned_alloc(64, align_up(state->buffer_size * sizeof(float))));
     if (!state->buffer) {
         free(state);
         return nullptr;

@@ -5,8 +5,9 @@
 #include <algorithm>
 
 LooperState* looper_state_create(float speed, float feedback, float mix, float sample_rate) {
+    auto align_up = [](size_t n) -> size_t { return (n + 63) & ~size_t(63); };
     LooperState* state = static_cast<LooperState*>(
-        aligned_alloc(64, sizeof(LooperState)));
+        aligned_alloc(64, align_up(sizeof(LooperState))));
     if (!state) return nullptr;
 
     state->sample_rate = sample_rate;
@@ -14,7 +15,7 @@ LooperState* looper_state_create(float speed, float feedback, float mix, float s
     // Allocate 60 second buffer
     state->buffer_size = static_cast<uint32_t>(sample_rate * 60.0f);
     state->buffer = static_cast<float*>(
-        aligned_alloc(64, state->buffer_size * sizeof(float)));
+        aligned_alloc(64, align_up(state->buffer_size * sizeof(float))));
     if (!state->buffer) {
         free(state);
         return nullptr;

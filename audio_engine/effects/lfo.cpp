@@ -9,7 +9,8 @@
 #endif
 
 LFOState* lfo_state_create(LFOWave wave, float freq_hz, float depth, float sample_rate) {
-    LFOState* state = static_cast<LFOState*>(aligned_alloc(64, sizeof(LFOState)));
+    auto align_up = [](size_t n) -> size_t { return (n + 63) & ~size_t(63); };
+    LFOState* state = static_cast<LFOState*>(aligned_alloc(64, align_up(sizeof(LFOState))));
     if (!state) return nullptr;
 
     state->wave = wave;

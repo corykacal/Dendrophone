@@ -264,12 +264,15 @@ std::vector<DSPBlock> GraphCompiler::compile_audio_node(const GraphNode& node,
         blocks.push_back(block);
     }
     else if (node.type == "reverb") {
-        float decay = get_param<float>(node.params, "decay", 0.6f);
-        float mix = get_param<float>(node.params, "mix", 0.5f);
-        float room_size = get_param<float>(node.params, "room_size", 0.8f);
+        float decay        = get_param<float>(node.params, "decay",        0.6f);
+        float mix          = get_param<float>(node.params, "mix",          0.5f);
+        float room_size    = get_param<float>(node.params, "room_size",    0.8f);
+        float damping      = get_param<float>(node.params, "damping",      0.4f);
+        float pre_delay_ms = get_param<float>(node.params, "pre_delay_ms", 0.0f);
 
         // Create reverb state with modulatable params
-        ReverbState* state = reverb_state_create(decay, mix, room_size,
+        ReverbState* state = reverb_state_create(decay, mix, room_size, damping,
+                                                  pre_delay_ms,
                                                   static_cast<float>(ctx.sample_rate));
         if (!state) {
             errors.push_back("Failed to allocate reverb state for " + node.id);
@@ -278,9 +281,11 @@ std::vector<DSPBlock> GraphCompiler::compile_audio_node(const GraphNode& node,
         ctx.allocated_states.push_back(state);
 
         // Register modulatable parameters
-        ctx.params[node.id + ":decay"] = &state->decay;
-        ctx.params[node.id + ":mix"] = &state->mix;
-        ctx.params[node.id + ":room_size"] = &state->room_size;
+        ctx.params[node.id + ":decay"]        = &state->decay;
+        ctx.params[node.id + ":mix"]          = &state->mix;
+        ctx.params[node.id + ":room_size"]    = &state->room_size;
+        ctx.params[node.id + ":damping"]      = &state->damping;
+        ctx.params[node.id + ":pre_delay_ms"] = &state->pre_delay_ms;
 
         // Find input buffer
         uint32_t in_buf = 0;

@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://dyyxa6d5pu3ir"]
+
+[ext_resource type="Script" path="res://scripts/camera_controller.gd" id="1_camera"]
+[ext_resource type="Script" path="res://scripts/graph_controller.gd" id="2_graph"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_test"]
+size = Vector3(1, 1, 1)
+
+[node name="Main" type="Node3D"]
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(0.707107, -0.408248, 0.57735, 0, 0.816497, 0.57735, -0.707107, -0.408248, 0.57735, 12, 8, 12)
+projection = 1
+size = 12.0
+script = ExtResource("1_camera")
+
+[node name="GraphVisualizer" type="Node3D" parent="."]
+script = ExtResource("2_graph")
+
+[node name="NodesContainer" type="Node3D" parent="GraphVisualizer"]
+
+[node name="EdgesContainer" type="Node3D" parent="GraphVisualizer"]
+
+[node name="TestCube" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_test")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 5, 5)

@@ -14,8 +14,9 @@ ChorusState* chorus_state_create(float rate_hz,
                                    float stereo_width,
                                    float mix,
                                    float sample_rate) {
+    auto align_up = [](size_t n) -> size_t { return (n + 63) & ~size_t(63); };
     ChorusState* state = static_cast<ChorusState*>(
-        aligned_alloc(64, sizeof(ChorusState)));
+        aligned_alloc(64, align_up(sizeof(ChorusState))));
     if (!state) return nullptr;
 
     state->sample_rate = sample_rate;
@@ -23,7 +24,7 @@ ChorusState* chorus_state_create(float rate_hz,
     // Allocate delay buffer (100ms max)
     state->buffer_size = static_cast<uint32_t>(sample_rate * 0.1f);
     state->buffer = static_cast<float*>(
-        aligned_alloc(64, state->buffer_size * sizeof(float)));
+        aligned_alloc(64, align_up(state->buffer_size * sizeof(float))));
     if (!state->buffer) {
         free(state);
         return nullptr;

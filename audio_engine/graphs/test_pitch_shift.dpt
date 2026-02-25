@@ -14,8 +14,8 @@
       "inputs": ["in"],
       "outputs": ["out"],
       "params": {
-        "pitch": 5.0,
-        "mix": 0.7
+        "pitch": 8.0,
+        "mix": 1.0
       }
     },
     "output": {

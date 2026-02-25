@@ -14,8 +14,9 @@ TremoloState* tremolo_state_create(float rate_hz,
                                      float stereo_phase,
                                      float mix,
                                      float sample_rate) {
+    auto align_up = [](size_t n) -> size_t { return (n + 63) & ~size_t(63); };
     TremoloState* state = static_cast<TremoloState*>(
-        aligned_alloc(64, sizeof(TremoloState)));
+        aligned_alloc(64, align_up(sizeof(TremoloState))));
     if (!state) return nullptr;
 
     state->sample_rate = sample_rate;

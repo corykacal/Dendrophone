@@ -67,15 +67,20 @@ public:
     // Build the final program - caller takes ownership
     // Returns nullptr on failure
     DSPProgram* build() {
+        // aligned_alloc requires size to be a multiple of alignment (strictly enforced on macOS)
+        auto align_up = [](size_t n) -> size_t {
+            return (n + 63) & ~size_t(63);
+        };
+
         // Allocate program struct
         DSPProgram* program = static_cast<DSPProgram*>(
-            aligned_alloc(64, sizeof(DSPProgram)));
+            aligned_alloc(64, align_up(sizeof(DSPProgram))));
         if (!program) return nullptr;
         memset(program, 0, sizeof(DSPProgram));
 
         // Allocate audio buffers (cache-line aligned for performance)
         size_t buffer_bytes = buffer_size_ * num_buffers_ * sizeof(float);
-        program->buffers = static_cast<float*>(aligned_alloc(64, buffer_bytes));
+        program->buffers = static_cast<float*>(aligned_alloc(64, align_up(buffer_bytes)));
         if (!program->buffers) {
             free(program);
             return nullptr;
@@ -85,7 +90,7 @@ public:
         // Allocate control buffers
         if (num_control_buffers_ > 0) {
             size_t ctrl_bytes = num_control_buffers_ * sizeof(float);
-            program->control_buffers = static_cast<float*>(aligned_alloc(64, ctrl_bytes));
+            program->control_buffers = static_cast<float*>(aligned_alloc(64, align_up(ctrl_bytes)));
             if (!program->control_buffers) {
                 free(program->buffers);
                 free(program);
@@ -99,7 +104,7 @@ public:
         // Allocate and copy control blocks
         if (!control_blocks_.empty()) {
             size_t blocks_bytes = control_blocks_.size() * sizeof(DSPBlock);
-            program->control_blocks = static_cast<DSPBlock*>(aligned_alloc(64, blocks_bytes));
+            program->control_blocks = static_cast<DSPBlock*>(aligned_alloc(64, align_up(blocks_bytes)));
             if (!program->control_blocks) {
                 free(program->control_buffers);
                 free(program->buffers);
@@ -114,7 +119,7 @@ public:
         // Allocate and copy audio blocks
         if (!audio_blocks_.empty()) {
             size_t blocks_bytes = audio_blocks_.size() * sizeof(DSPBlock);
-            program->audio_blocks = static_cast<DSPBlock*>(aligned_alloc(64, blocks_bytes));
+            program->audio_blocks = static_cast<DSPBlock*>(aligned_alloc(64, align_up(blocks_bytes)));
             if (!program->audio_blocks) {
                 free(program->control_blocks);
                 free(program->control_buffers);
@@ -130,7 +135,7 @@ public:
         // Allocate and copy mod routes
         if (!mod_routes_.empty()) {
             size_t routes_bytes = mod_routes_.size() * sizeof(ModRoute);
-            program->mod_routes = static_cast<ModRoute*>(aligned_alloc(64, routes_bytes));
+            program->mod_routes = static_cast<ModRoute*>(aligned_alloc(64, align_up(routes_bytes)));
             if (!program->mod_routes) {
                 free(program->audio_blocks);
                 free(program->control_blocks);

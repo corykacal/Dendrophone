@@ -69,8 +69,9 @@ GranularState* granular_state_create(float grain_size_ms,
                                       GranularState::WindowType window_type,
                                       float mix,
                                       float sample_rate) {
+    auto align_up = [](size_t n) -> size_t { return (n + 63) & ~size_t(63); };
     GranularState* state = static_cast<GranularState*>(
-        aligned_alloc(64, sizeof(GranularState)));
+        aligned_alloc(64, align_up(sizeof(GranularState))));
     if (!state) return nullptr;
 
     state->sample_rate = sample_rate;
@@ -79,7 +80,7 @@ GranularState* granular_state_create(float grain_size_ms,
     // Allocate source buffer (2 seconds)
     state->buffer_size = static_cast<uint32_t>(sample_rate * 2.0f);
     state->buffer = static_cast<float*>(
-        aligned_alloc(64, state->buffer_size * sizeof(float)));
+        aligned_alloc(64, align_up(state->buffer_size * sizeof(float))));
     if (!state->buffer) {
         free(state);
         return nullptr;
@@ -89,7 +90,7 @@ GranularState* granular_state_create(float grain_size_ms,
 
     // Allocate and generate window table
     state->window_table = static_cast<float*>(
-        aligned_alloc(64, GranularState::WINDOW_TABLE_SIZE * sizeof(float)));
+        aligned_alloc(64, align_up(GranularState::WINDOW_TABLE_SIZE * sizeof(float))));
     if (!state->window_table) {
         free(state->buffer);
         free(state);

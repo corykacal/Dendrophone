@@ -11,8 +11,9 @@ CompressorState* compressor_state_create(float threshold_db,
                                            float makeup_gain_db,
                                            float mix,
                                            float sample_rate) {
+    auto align_up = [](size_t n) -> size_t { return (n + 63) & ~size_t(63); };
     CompressorState* state = static_cast<CompressorState*>(
-        aligned_alloc(64, sizeof(CompressorState)));
+        aligned_alloc(64, align_up(sizeof(CompressorState))));
     if (!state) return nullptr;
 
     state->sample_rate = sample_rate;

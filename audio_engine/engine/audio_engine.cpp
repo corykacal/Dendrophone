@@ -1,9 +1,11 @@
 #include "audio_engine.h"
 #include <cstdio>
 #include <cstring>
-#include <sched.h>
 #include <pthread.h>
 #include <unistd.h>
+#ifdef __linux__
+#include <sched.h>
+#endif
 
 static constexpr int MAX_FRAMES = 1024;
 
@@ -43,6 +45,7 @@ void AudioEngine::stop() {
 }
 
 void AudioEngine::set_realtime_priority() {
+#ifdef __linux__
     struct sched_param param;
     param.sched_priority = sched_get_priority_max(SCHED_FIFO);
 
@@ -53,9 +56,13 @@ void AudioEngine::set_realtime_priority() {
         fprintf(stderr, "AudioEngine: RT priority set (SCHED_FIFO, priority %d)\n",
                 param.sched_priority);
     }
+#else
+    fprintf(stderr, "AudioEngine: RT scheduling skipped (macOS dev mode)\n");
+#endif
 }
 
 void AudioEngine::pin_to_core(int core) {
+#ifdef __linux__
     cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
     CPU_SET(core, &cpuset);
@@ -66,6 +73,10 @@ void AudioEngine::pin_to_core(int core) {
     } else {
         fprintf(stderr, "AudioEngine: Pinned to core %d\n", core);
     }
+#else
+    (void)core;
+    fprintf(stderr, "AudioEngine: CPU affinity skipped (macOS dev mode)\n");
+#endif
 }
 
 void AudioEngine::audio_thread() {

@@ -24,8 +24,9 @@ SVFilterState* svfilter_state_create(SVFilterState::Mode mode,
                                       float resonance,
                                       float mix,
                                       float sample_rate) {
+    auto align_up = [](size_t n) -> size_t { return (n + 63) & ~size_t(63); };
     SVFilterState* state = static_cast<SVFilterState*>(
-        aligned_alloc(64, sizeof(SVFilterState)));
+        aligned_alloc(64, align_up(sizeof(SVFilterState))));
     if (!state) return nullptr;
 
     // Initialize filter mode

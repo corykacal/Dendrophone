@@ -8,8 +8,9 @@ ReverseState* reverse_state_create(float buffer_time_ms,
                                      float mix,
                                      float enabled,
                                      float sample_rate) {
+    auto align_up = [](size_t n) -> size_t { return (n + 63) & ~size_t(63); };
     ReverseState* state = static_cast<ReverseState*>(
-        aligned_alloc(64, sizeof(ReverseState)));
+        aligned_alloc(64, align_up(sizeof(ReverseState))));
     if (!state) return nullptr;
 
     // Calculate maximum buffer size (2 seconds max)
@@ -18,7 +19,7 @@ ReverseState* reverse_state_create(float buffer_time_ms,
 
     // Allocate buffer
     state->buffer = static_cast<float*>(
-        aligned_alloc(64, state->max_buffer_size * sizeof(float)));
+        aligned_alloc(64, align_up(state->max_buffer_size * sizeof(float))));
     if (!state->buffer) {
         free(state);
         return nullptr;
