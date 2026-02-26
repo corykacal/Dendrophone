@@ -1,0 +1,68 @@
+{
+  "dpt_version": 1,
+  "audio": { "inputs": ["L", "R"], "outputs": ["L", "R"] },
+
+  "nodes": {
+    "input":  { "type": "input",  "outputs": ["L", "R"] },
+
+    "glitch": {
+      "type": "glitch",
+      "inputs": ["in"], "outputs": ["out"],
+      "params": {
+        "freeze": 0.2,
+        "stutter_rate_hz": 0.5,
+        "capture_size_ms": 200.0,
+        "speed": 0.9,
+        "randomize": 4.0,
+        "mix": 0.9
+      }
+    },
+
+    "chorus": {
+      "type": "chorus",
+      "inputs": ["in"], "outputs": ["out"],
+      "params": { "rate_hz": 1.0, "depth": 0.3, "voices": 3, "stereo_width": 0.5, "mix": 0.3 }
+    },
+
+    "gain": {
+      "type": "gain",
+      "inputs": ["in"], "outputs": ["out"],
+      "params": { "gain": 0.5 }
+    },
+
+    "crunch": {
+      "type": "crunchy",
+      "inputs": ["in"], "outputs": ["out"],
+      "params": { "drive": 0.5, "bits": 8.0, "downsample": 4.0, "mix": 0.5 }
+    },
+
+    "delay_L": {
+      "type": "delay",
+      "inputs": ["in"], "outputs": ["out"],
+      "params": { "time_ms": 400.0, "feedback": 0.2, "mix": 1.0 }
+    },
+
+    "delay_R": {
+      "type": "delay",
+      "inputs": ["in"], "outputs": ["out"],
+      "params": { "time_ms": 400.0, "feedback": 0.2, "mix": 1.0 }
+    },
+
+    "output": { "type": "output", "inputs": ["L", "R"] }
+  },
+
+  "connections": [
+    { "from": "input:L",      "to": "glitch:in" },
+    { "from": "glitch:out",   "to": "chorus:in" },
+
+    { "from": "chorus:out",   "to": "output:L" },
+    { "from": "chorus:out",   "to": "output:R" },
+
+    { "from": "chorus:out",   "to": "gain:in" },
+    { "from": "gain:out",     "to": "crunch:in" },
+    { "from": "crunch:out",   "to": "delay_L:in" },
+    { "from": "delay_L:out",  "to": "output:L" },
+    { "from": "delay_L:out",  "to": "delay_R:in" },
+    { "from": "delay_R:out",  "to": "output:R" }
+  ]
+}

@@ -233,13 +233,10 @@ void granular_op(DSPBlock& b, float* buffers, int n) {
 
         // Process all active grains
         float grain_sum = 0.0f;
-        s->num_active_grains = 0;
 
         for (int g = 0; g < GranularState::MAX_GRAINS; g++) {
             GranularState::Grain& grain = s->grains[g];
             if (!grain.active) continue;
-
-            s->num_active_grains++;
 
             // Read from buffer with interpolation
             uint32_t read_idx = static_cast<uint32_t>(grain.buffer_pos) % s->buffer_size;
@@ -260,11 +257,11 @@ void granular_op(DSPBlock& b, float* buffers, int n) {
 
             // Advance grain
             grain.phase += grain.phase_inc;
-            grain.buffer_pos -= grain.pitch_ratio;  // Read backward for natural sound
+            grain.buffer_pos += grain.pitch_ratio;
 
             // Wrap buffer position
-            if (grain.buffer_pos < 0.0f) {
-                grain.buffer_pos += s->buffer_size;
+            if (grain.buffer_pos >= s->buffer_size) {
+                grain.buffer_pos -= s->buffer_size;
             }
 
             // Deactivate grain when complete
@@ -274,8 +271,10 @@ void granular_op(DSPBlock& b, float* buffers, int n) {
             }
         }
 
-        // Normalize by max possible grains to prevent clipping
-        float normalization = 1.0f / sqrtf(GranularState::MAX_GRAINS);
+        // Normalize by active grain count to maintain consistent volume
+        float normalization = (s->num_active_grains > 0)
+            ? 1.0f / sqrtf(static_cast<float>(s->num_active_grains))
+            : 1.0f;
 
         // Mix dry/wet
         out[i] = in[i] * dry + grain_sum * mix * normalization;
