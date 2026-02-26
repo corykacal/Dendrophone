@@ -31,7 +31,7 @@ struct PitchShiftState {
     float hann_sin_inc;  // sin(2π / grain_size), precomputed once
 
     // WSOLA search parameters
-    uint32_t search_delta;  // ± samples around nominal anchor (~5 ms)
+    uint32_t search_delta;  // ± samples around nominal anchor (SEARCH_DELTA_MS)
     uint32_t corr_len;      // Correlation window length (grain_size / CORR_LEN_DIV)
     uint32_t corr_stride;   // Downsampling factor (evaluate every Nth sample)
 

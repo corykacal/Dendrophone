@@ -100,37 +100,32 @@ bool PortAudioDevice::open() {
     }
 
     // If output was not explicitly specified and the default output is the same
-    // device as the input (e.g. BlackHole set as system output), find a real
-    // output device — preferring anything with "Speaker" or "Built-in" in the name.
+    // device as the input (e.g. BlackHole set as system default output), we
+    // cannot guess which real output the user wants — list all candidates and
+    // ask them to pick one explicitly.
     if (config_.output_device_index < 0 && out_idx == in_idx) {
+        const PaDeviceInfo* in_info_tmp = Pa_GetDeviceInfo(in_idx);
+        fprintf(stderr, "\nError: no output device specified, and the system default output\n");
+        fprintf(stderr, "       ('%s') is the same as the input device.\n\n",
+                in_info_tmp ? in_info_tmp->name : "?");
+
         int count = Pa_GetDeviceCount();
-        int fallback = paNoDevice;
-        // First pass: prefer built-in speakers by name
+        fprintf(stderr, "Available output devices:\n");
+        fprintf(stderr, "  %-4s  %-44s  %s\n", "IDX", "NAME", "CH");
         for (int i = 0; i < count; i++) {
             if (i == in_idx) continue;
             const PaDeviceInfo* info = Pa_GetDeviceInfo(i);
             if (!info || info->maxOutputChannels < 1) continue;
-            if (strstr(info->name, "Speaker") || strstr(info->name, "Built-in")) {
-                fallback = i;
-                break;
-            }
+            fprintf(stderr, "  %-4d  %-44s  %d\n",
+                    i, info->name, info->maxOutputChannels);
         }
-        // Second pass: any non-input output device
-        if (fallback == paNoDevice) {
-            for (int i = 0; i < count; i++) {
-                if (i == in_idx) continue;
-                const PaDeviceInfo* info = Pa_GetDeviceInfo(i);
-                if (info && info->maxOutputChannels > 0) { fallback = i; break; }
-            }
-        }
-        if (fallback != paNoDevice) {
-            const PaDeviceInfo* fb_info = Pa_GetDeviceInfo(fallback);
-            fprintf(stderr, "PortAudio: default output == input device; auto-selected '%s' for output\n",
-                    fb_info ? fb_info->name : "?");
-            out_idx = fallback;
-        } else {
-            fprintf(stderr, "PortAudio: warning — could not find a separate output device\n");
-        }
+
+        fprintf(stderr, "\nRe-run with one of:\n");
+        fprintf(stderr, "  --output-name \"MacBook\"        (partial name match)\n");
+        fprintf(stderr, "  --output-name \"Headphones\"\n");
+        fprintf(stderr, "  --output-name \"USB\"\n");
+        fprintf(stderr, "  --output-device <IDX>          (exact index from list above)\n\n");
+        return false;
     }
 
     const PaDeviceInfo* in_info  = Pa_GetDeviceInfo(in_idx);

@@ -3,22 +3,20 @@
   "audio": { "inputs": ["L", "R"], "outputs": ["L", "R"] },
   "nodes": {
     "input":  { "type": "input",  "outputs": ["L", "R"] },
-    "tremolo": {
-      "type": "tremolo",
+    "delay": {
+      "type": "delay",
       "inputs": ["in"], "outputs": ["out"],
       "params": {
-        "rate_hz": 4.0,
-        "depth": 0.8,
-        "waveform": "sine",
-        "stereo_phase": 0.0,
+        "time_ms": 400.0,
+        "feedback": 0.4,
         "mix": 1.0
       }
     },
     "output": { "type": "output", "inputs": ["L", "R"] }
   },
   "connections": [
-    { "from": "input:L",      "to": "tremolo:in" },
-    { "from": "tremolo:out",  "to": "output:L" },
-    { "from": "tremolo:out",  "to": "output:R" }
+    { "from": "input:L",  "to": "delay:in" },
+    { "from": "delay:out", "to": "output:L" },
+    { "from": "delay:out", "to": "output:R" }
   ]
 }

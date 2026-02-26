@@ -1,0 +1,126 @@
+{
+  "dpt_version": 1,
+  "audio": {
+    "inputs": ["L", "R"],
+    "outputs": ["L", "R"]
+  },
+  "nodes": {
+    "input": {
+      "type": "input",
+      "outputs": ["L", "R"]
+    },
+
+    "lfo_reverse_breath": {
+      "type": "lfo", "rate": "control", "outputs": ["value"],
+      "params": { "wave": "sine", "freq_hz": 0.04, "depth": 0.5 }
+    },
+    "lfo_bandpass_sweep": {
+      "type": "lfo", "rate": "control", "outputs": ["value"],
+      "params": { "wave": "sine", "freq_hz": 0.07, "depth": 1500.0 }
+    },
+    "lfo_bandpass_res": {
+      "type": "lfo", "rate": "control", "outputs": ["value"],
+      "params": { "wave": "triangle", "freq_hz": 0.11, "depth": 2.0 }
+    },
+    "lfo_grain_drift": {
+      "type": "lfo", "rate": "control", "outputs": ["value"],
+      "params": { "wave": "sine", "freq_hz": 0.06, "depth": 2.0 }
+    },
+    "lfo_flanger_depth": {
+      "type": "lfo", "rate": "control", "outputs": ["value"],
+      "params": { "wave": "sine", "freq_hz": 0.025, "depth": 0.4 }
+    },
+    "lfo_reverb_space": {
+      "type": "lfo", "rate": "control", "outputs": ["value"],
+      "params": { "wave": "sine", "freq_hz": 0.05, "depth": 0.1 }
+    },
+
+    "pre_filter": {
+      "type": "svfilter",
+      "inputs": ["in"], "outputs": ["out"],
+      "params": { "mode": "lowpass", "cutoff": 4000.0, "resonance": 1.0, "mix": 1.0 }
+    },
+
+    "reverse": {
+      "type": "reverse",
+      "inputs": ["in"], "outputs": ["out"],
+      "param_inputs": ["enabled"],
+      "params": { "buffer_time_ms": 1200.0, "enabled": 0.5, "mix": 1.0 }
+    },
+    "bandpass": {
+      "type": "svfilter",
+      "inputs": ["in"], "outputs": ["out"],
+      "param_inputs": ["cutoff", "resonance"],
+      "params": { "mode": "bandpass", "cutoff": 1800.0, "resonance": 3.0, "mix": 1.0 }
+    },
+
+    "granular": {
+      "type": "granular",
+      "inputs": ["in"], "outputs": ["out"],
+      "param_inputs": ["pitch_shift"],
+      "params": {
+        "grain_size_ms": 50.0,
+        "density": 20.0,
+        "pitch_shift": 5.0,
+        "pitch_random": 1.5,
+        "position_random": 40.0,
+        "window": "blackman",
+        "mix": 1.0
+      }
+    },
+
+    "flanger": {
+      "type": "flanger",
+      "inputs": ["in"], "outputs": ["out"],
+      "param_inputs": ["depth"],
+      "params": { "rate_hz": 0.3, "depth": 0.5, "feedback": 0.6, "delay_ms": 4.0, "mix": 1.0 }
+    },
+
+    "mix_layers": {
+      "type": "mix",
+      "inputs": ["in_a", "in_b", "in_c"],
+      "outputs": ["out"]
+    },
+    "gain_layers": {
+      "type": "gain",
+      "inputs": ["in"], "outputs": ["out"],
+      "params": { "gain": 0.38 }
+    },
+
+    "reverb": {
+      "type": "reverb",
+      "inputs": ["in"], "outputs": ["out"],
+      "param_inputs": ["decay"],
+      "params": { "decay": 0.82, "room_size": 0.92, "damping": 0.3, "pre_delay_ms": 20.0, "mix": 0.7 }
+    },
+
+    "output": { "type": "output", "inputs": ["L", "R"] }
+  },
+
+  "connections": [
+    { "from": "input:L",             "to": "pre_filter:in" },
+
+    { "from": "pre_filter:out",      "to": "reverse:in" },
+    { "from": "lfo_reverse_breath:value", "to": "reverse:enabled" },
+    { "from": "reverse:out",         "to": "bandpass:in" },
+    { "from": "lfo_bandpass_sweep:value", "to": "bandpass:cutoff" },
+    { "from": "lfo_bandpass_res:value",   "to": "bandpass:resonance" },
+
+    { "from": "pre_filter:out",      "to": "granular:in" },
+    { "from": "lfo_grain_drift:value", "to": "granular:pitch_shift" },
+
+    { "from": "pre_filter:out",      "to": "flanger:in" },
+    { "from": "lfo_flanger_depth:value", "to": "flanger:depth" },
+
+    { "from": "bandpass:out",        "to": "mix_layers:in_a" },
+    { "from": "granular:out",        "to": "mix_layers:in_b" },
+    { "from": "flanger:out",         "to": "mix_layers:in_c" },
+
+    { "from": "mix_layers:out",      "to": "gain_layers:in" },
+    { "from": "gain_layers:out",     "to": "reverb:in" },
+    { "from": "lfo_reverb_space:value", "to": "reverb:decay" },
+
+    { "from": "reverb:out",          "to": "output:L" },
+    { "from": "reverb:out",          "to": "output:R" }
+  ]
+}

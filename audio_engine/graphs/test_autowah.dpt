@@ -1,36 +1,26 @@
 {
   "dpt_version": 1,
-  "audio": {
-    "inputs": ["L", "R"],
-    "outputs": ["L", "R"]
-  },
+  "audio": { "inputs": ["L", "R"], "outputs": ["L", "R"] },
   "nodes": {
-    "input": {
-      "type": "input",
-      "outputs": ["L", "R"]
-    },
+    "input":  { "type": "input",  "outputs": ["L", "R"] },
     "autowah": {
       "type": "autowah",
-      "inputs": ["in"],
-      "outputs": ["out"],
+      "inputs": ["in"], "outputs": ["out"],
       "params": {
         "sensitivity": 0.7,
-        "attack_ms": 10.0,
+        "attack_ms": 5.0,
         "release_ms": 200.0,
-        "frequency_min_hz": 300.0,
-        "frequency_max_hz": 3000.0,
-        "resonance": 3.0,
+        "frequency_min_hz": 250.0,
+        "frequency_max_hz": 4000.0,
+        "resonance": 3.5,
         "mix": 1.0
       }
     },
-    "output": {
-      "type": "output",
-      "inputs": ["L", "R"]
-    }
+    "output": { "type": "output", "inputs": ["L", "R"] }
   },
   "connections": [
-    { "from": "input:L", "to": "autowah:in" },
-    { "from": "autowah:out", "to": "output:L" },
-    { "from": "autowah:out", "to": "output:R" }
+    { "from": "input:L",      "to": "autowah:in" },
+    { "from": "autowah:out",  "to": "output:L" },
+    { "from": "autowah:out",  "to": "output:R" }
   ]
 }

@@ -1,33 +1,23 @@
 {
   "dpt_version": 1,
-  "audio": {
-    "inputs": ["L", "R"],
-    "outputs": ["L", "R"]
-  },
+  "audio": { "inputs": ["L", "R"], "outputs": ["L", "R"] },
   "nodes": {
-    "input": {
-      "type": "input",
-      "outputs": ["L", "R"]
-    },
+    "input":  { "type": "input",  "outputs": ["L", "R"] },
     "chorus": {
       "type": "chorus",
-      "inputs": ["in"],
-      "outputs": ["out"],
+      "inputs": ["in"], "outputs": ["out"],
       "params": {
-        "rate_hz": 1.5,
-        "depth": 0.6,
+        "rate_hz": 0.5,
+        "depth": 0.9,
         "voices": 3,
-        "stereo_width": 0.5,
-        "mix": 0.5
+        "stereo_width": 0.8,
+        "mix": 0.85
       }
     },
-    "output": {
-      "type": "output",
-      "inputs": ["L", "R"]
-    }
+    "output": { "type": "output", "inputs": ["L", "R"] }
   },
   "connections": [
-    { "from": "input:L", "to": "chorus:in" },
+    { "from": "input:L",    "to": "chorus:in" },
     { "from": "chorus:out", "to": "output:L" },
     { "from": "chorus:out", "to": "output:R" }
   ]

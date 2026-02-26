@@ -28,14 +28,18 @@ void print_usage(const char* prog) {
     fprintf(stderr, "Usage: %s [options] [buffer_size]\n", prog);
     fprintf(stderr, "       %s -f <file.dpt> [buffer_size]\n", prog);
     fprintf(stderr, "\nOptions:\n");
-    fprintf(stderr, "  -f <file>          Load DSP graph from .dpt file\n");
-    fprintf(stderr, "  buffer_size        Frames per buffer (default: 64)\n");
+    fprintf(stderr, "  -f <file>              Load DSP graph from .dpt file\n");
+    fprintf(stderr, "  buffer_size            Frames per buffer (default: 64)\n");
 #ifdef __APPLE__
-    fprintf(stderr, "  --list-devices     Print available audio devices and exit\n");
-    fprintf(stderr, "  --input-device N   Use device index N for input\n");
-    fprintf(stderr, "  --output-device N  Use device index N for output\n");
-    fprintf(stderr, "  --input-name STR   Use first input device whose name contains STR\n");
-    fprintf(stderr, "  --output-name STR  Use first output device whose name contains STR\n");
+    fprintf(stderr, "  --list-devices         Print available audio devices and exit\n");
+    fprintf(stderr, "  --input-device  N      Use device index N for input\n");
+    fprintf(stderr, "  --output-device N      Use device index N for output\n");
+    fprintf(stderr, "  --input-name  STR      Use first input  device whose name contains STR\n");
+    fprintf(stderr, "  --output-name STR      Use first output device whose name contains STR\n");
+    fprintf(stderr, "\nExamples:\n");
+    fprintf(stderr, "  %s --input-name BlackHole --output-name MacBook -f graph.dpt\n", prog);
+    fprintf(stderr, "  %s --input-name BlackHole --output-name Headphones -f graph.dpt\n", prog);
+    fprintf(stderr, "  %s --list-devices\n", prog);
 #endif
 }
 

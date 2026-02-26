@@ -1,32 +1,23 @@
 {
   "dpt_version": 1,
-  "audio": {
-    "inputs": ["L", "R"],
-    "outputs": ["L", "R"]
-  },
+  "audio": { "inputs": ["L", "R"], "outputs": ["L", "R"] },
   "nodes": {
-    "input": {
-      "type": "input",
-      "outputs": ["L", "R"]
-    },
+    "input":  { "type": "input",  "outputs": ["L", "R"] },
     "reverb": {
       "type": "reverb",
-      "inputs": ["in"],
-      "outputs": ["out"],
+      "inputs": ["in"], "outputs": ["out"],
       "params": {
-        "decay": 0.7,
-        "mix": 0.4,
-        "room_size": 0.8
+        "decay": 0.75,
+        "room_size": 0.9,
+        "damping": 0.3,
+        "pre_delay_ms": 15.0,
+        "mix": 1.0
       }
     },
-    "output": {
-      "type": "output",
-      "inputs": ["L", "R"]
-    }
+    "output": { "type": "output", "inputs": ["L", "R"] }
   },
   "connections": [
-    { "from": "input:L", "to": "reverb:in" },
-    { "from": "input:R", "to": "reverb:in" },
+    { "from": "input:L",    "to": "reverb:in" },
     { "from": "reverb:out", "to": "output:L" },
     { "from": "reverb:out", "to": "output:R" }
   ]

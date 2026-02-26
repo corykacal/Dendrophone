@@ -1,0 +1,124 @@
+{
+  "dpt_version": 1,
+  "audio": {
+    "inputs": ["L", "R"],
+    "outputs": ["L", "R"]
+  },
+  "nodes": {
+    "input": {
+      "type": "input",
+      "outputs": ["L", "R"]
+    },
+
+    "lfo_root_drift": {
+      "type": "lfo", "rate": "control", "outputs": ["value"],
+      "params": { "wave": "sine", "freq_hz": 0.03, "depth": 2.0 }
+    },
+    "lfo_filter_open": {
+      "type": "lfo", "rate": "control", "outputs": ["value"],
+      "params": { "wave": "sine", "freq_hz": 0.05, "depth": 600.0 }
+    },
+    "lfo_chorus_rate": {
+      "type": "lfo", "rate": "control", "outputs": ["value"],
+      "params": { "wave": "triangle", "freq_hz": 0.04, "depth": 0.12 }
+    },
+    "lfo_reverb_breath": {
+      "type": "lfo", "rate": "control", "outputs": ["value"],
+      "params": { "wave": "sine", "freq_hz": 0.035, "depth": 0.08 }
+    },
+
+    "pre_filter": {
+      "type": "svfilter",
+      "inputs": ["in"], "outputs": ["out"],
+      "param_inputs": ["cutoff"],
+      "params": { "mode": "lowpass", "cutoff": 2500.0, "resonance": 1.2, "mix": 1.0 }
+    },
+
+    "pitch_root": {
+      "type": "pitch_shift",
+      "inputs": ["in"], "outputs": ["out"],
+      "param_inputs": ["pitch"],
+      "params": { "pitch": 0.0, "mix": 1.0 }
+    },
+    "pitch_fifth": {
+      "type": "pitch_shift",
+      "inputs": ["in"], "outputs": ["out"],
+      "params": { "pitch": 7.0, "mix": 1.0 }
+    },
+    "pitch_octave": {
+      "type": "pitch_shift",
+      "inputs": ["in"], "outputs": ["out"],
+      "params": { "pitch": 12.0, "mix": 1.0 }
+    },
+
+    "mix_voices": {
+      "type": "mix",
+      "inputs": ["in_a", "in_b", "in_c"],
+      "outputs": ["out"]
+    },
+    "gain_voices": {
+      "type": "gain",
+      "inputs": ["in"], "outputs": ["out"],
+      "params": { "gain": 0.38 }
+    },
+
+    "multitap": {
+      "type": "multitap_delay",
+      "inputs": ["in"], "outputs": ["out"],
+      "params": {
+        "tap0_time_ms": 89.0,
+        "tap0_gain": 0.75,
+        "tap1_time_ms": 144.0,
+        "tap1_gain": 0.62,
+        "tap2_time_ms": 233.0,
+        "tap2_gain": 0.50,
+        "tap3_time_ms": 377.0,
+        "tap3_gain": 0.38,
+        "feedback": 0.35,
+        "mix": 0.7
+      }
+    },
+
+    "chorus": {
+      "type": "chorus",
+      "inputs": ["in"], "outputs": ["out"],
+      "param_inputs": ["rate_hz"],
+      "params": { "rate_hz": 0.25, "depth": 0.6, "voices": 4, "stereo_width": 0.9, "mix": 0.6 }
+    },
+
+    "reverb": {
+      "type": "reverb",
+      "inputs": ["in"], "outputs": ["out"],
+      "param_inputs": ["decay"],
+      "params": { "decay": 0.88, "room_size": 0.95, "damping": 0.2, "pre_delay_ms": 25.0, "mix": 0.65 }
+    },
+
+    "output": { "type": "output", "inputs": ["L", "R"] }
+  },
+
+  "connections": [
+    { "from": "input:L",              "to": "pre_filter:in" },
+    { "from": "lfo_filter_open:value","to": "pre_filter:cutoff" },
+
+    { "from": "pre_filter:out",       "to": "pitch_root:in" },
+    { "from": "lfo_root_drift:value", "to": "pitch_root:pitch" },
+    { "from": "pre_filter:out",       "to": "pitch_fifth:in" },
+    { "from": "pre_filter:out",       "to": "pitch_octave:in" },
+
+    { "from": "pitch_root:out",       "to": "mix_voices:in_a" },
+    { "from": "pitch_fifth:out",      "to": "mix_voices:in_b" },
+    { "from": "pitch_octave:out",     "to": "mix_voices:in_c" },
+
+    { "from": "mix_voices:out",       "to": "gain_voices:in" },
+    { "from": "gain_voices:out",      "to": "multitap:in" },
+
+    { "from": "multitap:out",         "to": "chorus:in" },
+    { "from": "lfo_chorus_rate:value","to": "chorus:rate_hz" },
+
+    { "from": "chorus:out",           "to": "reverb:in" },
+    { "from": "lfo_reverb_breath:value", "to": "reverb:decay" },
+
+    { "from": "reverb:out",           "to": "output:L" },
+    { "from": "reverb:out",           "to": "output:R" }
+  ]
+}

@@ -119,71 +119,47 @@ void glitch_op(DSPBlock& b, float* buffers, int n) {
         s->sample_rate / stutter_rate);
     stutter_interval = std::max(stutter_interval, 100u);
 
-    // Check for freeze state change
-    bool should_freeze = (freeze_amt > 0.5f);
-    if (should_freeze && !s->frozen) {
-        // Entering freeze - capture current buffer
-        s->frozen = true;
-        s->read_pos = 0.0f;
-    } else if (!should_freeze && s->frozen) {
-        // Exiting freeze
-        s->frozen = false;
-        s->write_pos = 0;
-    }
+    s->frozen = (freeze_amt > 0.5f);
 
     for (int i = 0; i < n; i++) {
-        float output_sample = in[i];
-
-        if (s->frozen) {
-            // Frozen: read from buffer with stutter
-            s->stutter_counter++;
-
-            // Retrigger on stutter interval
-            if (s->stutter_counter >= stutter_interval) {
-                s->stutter_counter = 0;
-
-                // Apply randomization to retrigger point
-                float random_offset = (random_float_glitch(s->random_seed) * 2.0f - 1.0f) * randomize;
-                int32_t offset_samples = static_cast<int32_t>(
-                    random_offset * s->capture_length * 0.5f);
-
-                int32_t new_pos = static_cast<int32_t>(offset_samples);
-                while (new_pos < 0) new_pos += s->capture_length;
-                while (new_pos >= static_cast<int32_t>(s->capture_length)) {
-                    new_pos -= s->capture_length;
-                }
-
-                s->read_pos = static_cast<float>(new_pos);
-
-                // Randomize speed slightly
-                if (randomize > 0.0f) {
-                    float speed_variation = (random_float_glitch(s->random_seed) * 2.0f - 1.0f) *
-                                           randomize * 0.5f;
-                    speed = std::clamp(speed + speed_variation, 0.25f, 4.0f);
-                }
-            }
-
-            // Read from buffer with interpolation
-            uint32_t read_idx = static_cast<uint32_t>(s->read_pos) % s->capture_length;
-            uint32_t read_idx_next = (read_idx + 1) % s->capture_length;
-            float frac = s->read_pos - floorf(s->read_pos);
-
-            float sample_a = s->buffer[read_idx];
-            float sample_b = s->buffer[read_idx_next];
-            output_sample = sample_a * (1.0f - frac) + sample_b * frac;
-
-            // Advance read position
-            s->read_pos += speed;
-            if (s->read_pos >= s->capture_length) {
-                s->read_pos -= s->capture_length;
-            }
-        } else {
-            // Not frozen: continuously write to buffer
+        // 1. Capture: write live audio into ring buffer (unless frozen)
+        if (!s->frozen) {
             s->buffer[s->write_pos] = in[i];
             s->write_pos = (s->write_pos + 1) % s->capture_length;
         }
 
-        // Mix dry/wet
-        out[i] = in[i] * dry + output_sample * mix;
+        // 2. Stutter: retrigger read head periodically
+        if (++s->stutter_counter >= stutter_interval) {
+            s->stutter_counter = 0;
+
+            // Align read head to write_pos - stutter_interval (replay what was just captured)
+            int32_t base = (int32_t)s->write_pos - (int32_t)stutter_interval;
+            float rand_val = (random_float_glitch(s->random_seed) * 2.0f - 1.0f) * randomize;
+            int32_t rand_offset = (int32_t)(rand_val * (float)s->capture_length * 0.5f);
+            int32_t new_pos = base + rand_offset;
+            // Wrap to [0, capture_length)
+            new_pos = ((new_pos % (int32_t)s->capture_length) + (int32_t)s->capture_length) % (int32_t)s->capture_length;
+            s->read_pos = (float)new_pos;
+
+            // Speed jitter
+            if (randomize > 0.0f) {
+                float sv = (random_float_glitch(s->random_seed) * 2.0f - 1.0f) * randomize * 0.5f;
+                speed = std::clamp(speed + sv, 0.25f, 4.0f);
+            }
+        }
+
+        // 3. Read from ring buffer with linear interpolation
+        uint32_t ri  = (uint32_t)s->read_pos % s->capture_length;
+        uint32_t ri2 = (ri + 1) % s->capture_length;
+        float frac   = s->read_pos - floorf(s->read_pos);
+        float wet    = s->buffer[ri] * (1.0f - frac) + s->buffer[ri2] * frac;
+
+        // 4. Advance read position at playback speed
+        s->read_pos += speed;
+        if (s->read_pos >= (float)s->capture_length)
+            s->read_pos -= (float)s->capture_length;
+
+        // 5. Mix
+        out[i] = in[i] * dry + wet * mix;
     }
 }

@@ -1,0 +1,184 @@
+{
+  "dpt_version": 1,
+  "audio": {
+    "inputs": ["L", "R"],
+    "outputs": ["L", "R"]
+  },
+  "nodes": {
+    "input": {
+      "type": "input",
+      "outputs": ["L", "R"]
+    },
+
+    "lfo_filter": {
+      "type": "lfo",
+      "rate": "control",
+      "outputs": ["value"],
+      "params": {
+        "wave": "sine",
+        "freq_hz": 0.05,
+        "depth": 800.0
+      }
+    },
+    "lfo_grain_shimmer": {
+      "type": "lfo",
+      "rate": "control",
+      "outputs": ["value"],
+      "params": {
+        "wave": "triangle",
+        "freq_hz": 0.09,
+        "depth": 25.0
+      }
+    },
+    "lfo_grain_pitch": {
+      "type": "lfo",
+      "rate": "control",
+      "outputs": ["value"],
+      "params": {
+        "wave": "sine",
+        "freq_hz": 0.06,
+        "depth": 4.0
+      }
+    },
+    "lfo_stutter": {
+      "type": "lfo",
+      "rate": "control",
+      "outputs": ["value"],
+      "params": {
+        "wave": "random",
+        "freq_hz": 0.25,
+        "depth": 2.0
+      }
+    },
+
+    "filter_pre": {
+      "type": "svfilter",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "param_inputs": ["cutoff"],
+      "params": {
+        "mode": "lowpass",
+        "cutoff": 1200.0,
+        "resonance": 2.2,
+        "mix": 1.0
+      }
+    },
+
+    "gran_shimmer": {
+      "type": "granular",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "param_inputs": ["grain_size_ms"],
+      "params": {
+        "grain_size_ms": 80.0,
+        "density": 22.0,
+        "pitch_shift": 12.0,
+        "pitch_random": 1.5,
+        "position_random": 60.0,
+        "window": "blackman",
+        "mix": 0.8
+      }
+    },
+
+    "gran_bass": {
+      "type": "granular",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "param_inputs": ["pitch_shift"],
+      "params": {
+        "grain_size_ms": 40.0,
+        "density": 30.0,
+        "pitch_shift": -7.0,
+        "pitch_random": 0.5,
+        "position_random": 25.0,
+        "window": "hann",
+        "mix": 0.75
+      }
+    },
+
+    "glitch_pulse": {
+      "type": "glitch",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "param_inputs": ["stutter_rate_hz"],
+      "params": {
+        "freeze": 0.0,
+        "stutter_rate_hz": 3.0,
+        "capture_size_ms": 380.0,
+        "speed": 1.0,
+        "randomize": 0.35,
+        "mix": 0.5
+      }
+    },
+
+    "mix_layers": {
+      "type": "mix",
+      "inputs": ["in_a", "in_b", "in_c"],
+      "outputs": ["out"]
+    },
+
+    "gain_layers": {
+      "type": "gain",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "params": {
+        "gain": 0.35
+      }
+    },
+
+    "chorus_wide": {
+      "type": "chorus",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "params": {
+        "rate_hz": 0.18,
+        "depth": 0.8,
+        "voices": 4,
+        "stereo_width": 0.9,
+        "mix": 0.6
+      }
+    },
+
+    "reverb_hall": {
+      "type": "reverb",
+      "inputs": ["in"],
+      "outputs": ["out"],
+      "params": {
+        "decay": 0.9,
+        "room_size": 0.95,
+        "damping": 0.3,
+        "mix": 0.6
+      }
+    },
+
+    "output": {
+      "type": "output",
+      "inputs": ["L", "R"]
+    }
+  },
+
+  "connections": [
+    { "from": "input:L",              "to": "filter_pre:in" },
+    { "from": "lfo_filter:value",     "to": "filter_pre:cutoff" },
+
+    { "from": "filter_pre:out",           "to": "gran_shimmer:in" },
+    { "from": "lfo_grain_shimmer:value",  "to": "gran_shimmer:grain_size_ms" },
+
+    { "from": "filter_pre:out",       "to": "gran_bass:in" },
+    { "from": "lfo_grain_pitch:value","to": "gran_bass:pitch_shift" },
+
+    { "from": "filter_pre:out",       "to": "glitch_pulse:in" },
+    { "from": "lfo_stutter:value",    "to": "glitch_pulse:stutter_rate_hz" },
+
+    { "from": "gran_shimmer:out",  "to": "mix_layers:in_a" },
+    { "from": "gran_bass:out",     "to": "mix_layers:in_b" },
+    { "from": "glitch_pulse:out",  "to": "mix_layers:in_c" },
+
+    { "from": "mix_layers:out",   "to": "gain_layers:in" },
+    { "from": "gain_layers:out",  "to": "chorus_wide:in" },
+    { "from": "chorus_wide:out",  "to": "reverb_hall:in" },
+
+    { "from": "reverb_hall:out",  "to": "output:L" },
+    { "from": "reverb_hall:out",  "to": "output:R" }
+  ]
+}

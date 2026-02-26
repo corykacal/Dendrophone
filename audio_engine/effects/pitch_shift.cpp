@@ -54,7 +54,7 @@ PitchShiftState* pitch_shift_state_create(float pitch, float mix, float sample_r
     // at pitch_ratio, relative to the nominal delay anchor.
     uint32_t nominal    = (state->buffer_size - state->read_delay) & state->buf_mask;
     state->read_pos[0]  = (float)nominal;
-    float rp1 = (float)nominal + (float)state->grain_size * 0.5f * (pitch_ratio - 1.0f);
+    float rp1 = (float)nominal + (float)state->grain_size * 0.5f * pitch_ratio;
     if (rp1 >= (float)state->buffer_size) rp1 -= (float)state->buffer_size;
     if (rp1 < 0.0f)                       rp1 += (float)state->buffer_size;
     state->read_pos[1]  = rp1;
