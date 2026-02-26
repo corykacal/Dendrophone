@@ -3,22 +3,21 @@
   "audio": { "inputs": ["L", "R"], "outputs": ["L", "R"] },
   "nodes": {
     "input":  { "type": "input",  "outputs": ["L", "R"] },
-    "reverb": {
-      "type": "reverb",
+    "crunchy": {
+      "type": "crunchy",
       "inputs": ["in"], "outputs": ["out"],
       "params": {
-        "decay": 0.25,
-        "room_size": 0.3,
-        "damping": 0.1,
-        "pre_delay_ms": 40.0,
+        "drive": 0.9,
+        "bits": 16.0,
+        "downsample": 7.0,
         "mix": 1.0
       }
     },
     "output": { "type": "output", "inputs": ["L", "R"] }
   },
   "connections": [
-    { "from": "input:L",    "to": "reverb:in" },
-    { "from": "reverb:out", "to": "output:L" },
-    { "from": "reverb:out", "to": "output:R" }
+    { "from": "input:L",     "to": "crunchy:in" },
+    { "from": "crunchy:out", "to": "output:L" },
+    { "from": "crunchy:out", "to": "output:R" }
   ]
 }

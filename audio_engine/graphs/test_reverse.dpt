@@ -7,9 +7,8 @@
       "type": "reverse",
       "inputs": ["in"], "outputs": ["out"],
       "params": {
-        "buffer_time_ms": 500.0,
-        "enabled": 1.0,
-        "mix": 1.0
+        "buffer_time_ms": 1000.0,
+        "mix": 0.8
       }
     },
     "output": { "type": "output", "inputs": ["L", "R"] }

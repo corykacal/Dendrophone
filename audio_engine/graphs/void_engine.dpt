@@ -59,8 +59,8 @@
     "reverse": {
       "type": "reverse",
       "inputs": ["in"], "outputs": ["out"],
-      "param_inputs": ["enabled"],
-      "params": { "buffer_time_ms": 1000.0, "enabled": 0.5, "mix": 1.0 }
+      "param_inputs": ["mix"],
+      "params": { "buffer_time_ms": 1000.0, "mix": 0.5 }
     },
     "bandpass_mid": {
       "type": "svfilter",
@@ -145,7 +145,7 @@
     { "from": "lfo_gate_sub:value",     "to": "lowpass_sub:mix" },
 
     { "from": "input:L",                 "to": "reverse:in" },
-    { "from": "lfo_reverse_drift:value", "to": "reverse:enabled" },
+    { "from": "lfo_reverse_drift:value", "to": "reverse:mix" },
     { "from": "reverse:out",             "to": "bandpass_mid:in" },
 
     { "from": "input:L",                 "to": "granular:in" },

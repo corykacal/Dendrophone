@@ -8,7 +8,6 @@
 // Compressor effect - feed-forward compressor with RMS detection
 struct CompressorState {
     float envelope;             // Current envelope level (linear)
-    float gain_reduction;       // Current gain reduction (linear)
     float sample_rate;
 
     // Modulatable parameters

@@ -1,0 +1,24 @@
+{
+  "dpt_version": 1,
+  "audio": { "inputs": ["L", "R"], "outputs": ["L", "R"] },
+  "nodes": {
+    "input":  { "type": "input",  "outputs": ["L", "R"] },
+    "lfo_trem": {
+      "type": "lfo", "rate": "control", "outputs": ["value"],
+      "params": { "wave": "sine", "freq_hz": 4.0, "depth": 0.5 }
+    },
+    "gain": {
+      "type": "gain",
+      "inputs": ["in"], "outputs": ["out"],
+      "param_inputs": ["gain"],
+      "params": { "gain": 1.0 }
+    },
+    "output": { "type": "output", "inputs": ["L", "R"] }
+  },
+  "connections": [
+    { "from": "input:L",        "to": "gain:in" },
+    { "from": "lfo_trem:value", "to": "gain:gain" },
+    { "from": "gain:out",       "to": "output:L" },
+    { "from": "gain:out",       "to": "output:R" }
+  ]
+}

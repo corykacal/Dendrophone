@@ -7,11 +7,11 @@
       "type": "autowah",
       "inputs": ["in"], "outputs": ["out"],
       "params": {
-        "sensitivity": 0.7,
-        "attack_ms": 5.0,
-        "release_ms": 200.0,
-        "frequency_min_hz": 250.0,
-        "frequency_max_hz": 4000.0,
+        "sensitivity": 0.3,
+        "attack_ms": 10.0,
+        "release_ms": 300.0,
+        "frequency_min_hz": 150.0,
+        "frequency_max_hz": 3000.0,
         "resonance": 3.5,
         "mix": 1.0
       }

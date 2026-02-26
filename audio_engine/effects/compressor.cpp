@@ -18,30 +18,35 @@ CompressorState* compressor_state_create(float threshold_db,
 
     state->sample_rate = sample_rate;
     state->envelope = 0.0f;
-    state->gain_reduction = 1.0f;
 
     // Initialize parameters
     state->threshold_db.base = threshold_db;
+    state->threshold_db.mod = 0.0f;
     state->threshold_db.smoothed = threshold_db;
     state->threshold_db.set_smoothing(10.0f, sample_rate);
 
     state->ratio.base = ratio;
+    state->ratio.mod = 0.0f;
     state->ratio.smoothed = ratio;
     state->ratio.set_smoothing(10.0f, sample_rate);
 
     state->attack_ms.base = attack_ms;
+    state->attack_ms.mod = 0.0f;
     state->attack_ms.smoothed = attack_ms;
     state->attack_ms.set_smoothing(10.0f, sample_rate);
 
     state->release_ms.base = release_ms;
+    state->release_ms.mod = 0.0f;
     state->release_ms.smoothed = release_ms;
     state->release_ms.set_smoothing(10.0f, sample_rate);
 
     state->makeup_gain_db.base = makeup_gain_db;
+    state->makeup_gain_db.mod = 0.0f;
     state->makeup_gain_db.smoothed = makeup_gain_db;
     state->makeup_gain_db.set_smoothing(10.0f, sample_rate);
 
     state->mix.base = mix;
+    state->mix.mod = 0.0f;
     state->mix.smoothed = mix;
     state->mix.smooth_coeff = 0.0f;
 

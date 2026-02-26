@@ -44,6 +44,8 @@ GlitchState* glitch_state_create(float freeze,
     state->frozen = false;
     state->stutter_counter = 0;
     state->random_seed = 54321;
+    state->xfade_gain = 1.0f;
+    state->xfade_dir = 0;
 
     // Initialize parameters
     state->freeze.base = freeze;
@@ -64,11 +66,11 @@ GlitchState* glitch_state_create(float freeze,
 
     state->randomize.base = randomize;
     state->randomize.smoothed = randomize;
-    state->randomize.smooth_coeff = 0.0f;
+    state->randomize.set_smoothing(20.0f, sample_rate);
 
     state->mix.base = mix;
     state->mix.smoothed = mix;
-    state->mix.smooth_coeff = 0.0f;
+    state->mix.set_smoothing(20.0f, sample_rate);
 
     return state;
 }
@@ -91,7 +93,7 @@ void glitch_op(DSPBlock& b, float* buffers, int n) {
     float* in = &buffers[b.in_a * n];
     float* out = &buffers[b.out * n];
 
-    const float mix = std::clamp(s->mix.get(), 0.0f, 1.0f);
+    const float mix = std::clamp(s->mix.get_smoothed(), 0.0f, 1.0f);
     const float dry = 1.0f - mix;
 
     // Get parameters
@@ -99,7 +101,7 @@ void glitch_op(DSPBlock& b, float* buffers, int n) {
     float stutter_rate = std::clamp(s->stutter_rate_hz.get_smoothed(), 0.5f, 50.0f);
     float capture_ms = std::clamp(s->capture_size_ms.get_smoothed(), 10.0f, 1000.0f);
     float speed = std::clamp(s->speed.get_smoothed(), 0.25f, 4.0f);
-    float randomize = std::clamp(s->randomize.get(), 0.0f, 1.0f);
+    float randomize = std::clamp(s->randomize.get_smoothed(), 0.0f, 1.0f);
 
     // Update capture length
     uint32_t new_capture_length = static_cast<uint32_t>(
@@ -119,6 +121,11 @@ void glitch_op(DSPBlock& b, float* buffers, int n) {
         s->sample_rate / stutter_rate);
     stutter_interval = std::max(stutter_interval, 100u);
 
+    // Crossfade constants (~1.3 ms, capped at half stutter interval)
+    const int32_t XFADE_LEN = 64;
+    const int32_t xfade_len = std::min(XFADE_LEN, (int32_t)(stutter_interval / 2));
+    const float   xfade_step = (xfade_len > 0) ? 1.0f / (float)xfade_len : 1.0f;
+
     s->frozen = (freeze_amt > 0.5f);
 
     for (int i = 0; i < n; i++) {
@@ -128,38 +135,53 @@ void glitch_op(DSPBlock& b, float* buffers, int n) {
             s->write_pos = (s->write_pos + 1) % s->capture_length;
         }
 
-        // 2. Stutter: retrigger read head periodically
-        if (++s->stutter_counter >= stutter_interval) {
-            s->stutter_counter = 0;
+        // 2. Step crossfade envelope
+        if (s->xfade_dir != 0) {
+            s->xfade_gain += (float)s->xfade_dir * xfade_step;
+            if (s->xfade_gain <= 0.0f) {
+                s->xfade_gain = 0.0f;
+                // Gain has reached silence — safe to jump read head now
+                int32_t base = (int32_t)s->write_pos - (int32_t)stutter_interval;
+                float rand_val = (random_float_glitch(s->random_seed) * 2.0f - 1.0f) * randomize;
+                int32_t rand_offset = (int32_t)(rand_val * (float)s->capture_length * 0.5f);
+                int32_t new_pos = base + rand_offset;
+                new_pos = ((new_pos % (int32_t)s->capture_length) + (int32_t)s->capture_length) % (int32_t)s->capture_length;
+                s->read_pos = (float)new_pos;
 
-            // Align read head to write_pos - stutter_interval (replay what was just captured)
-            int32_t base = (int32_t)s->write_pos - (int32_t)stutter_interval;
-            float rand_val = (random_float_glitch(s->random_seed) * 2.0f - 1.0f) * randomize;
-            int32_t rand_offset = (int32_t)(rand_val * (float)s->capture_length * 0.5f);
-            int32_t new_pos = base + rand_offset;
-            // Wrap to [0, capture_length)
-            new_pos = ((new_pos % (int32_t)s->capture_length) + (int32_t)s->capture_length) % (int32_t)s->capture_length;
-            s->read_pos = (float)new_pos;
+                // Speed jitter
+                if (randomize > 0.0f) {
+                    float sv = (random_float_glitch(s->random_seed) * 2.0f - 1.0f) * randomize * 0.5f;
+                    speed = std::clamp(speed + sv, 0.25f, 4.0f);
+                }
 
-            // Speed jitter
-            if (randomize > 0.0f) {
-                float sv = (random_float_glitch(s->random_seed) * 2.0f - 1.0f) * randomize * 0.5f;
-                speed = std::clamp(speed + sv, 0.25f, 4.0f);
+                s->xfade_dir = +1;  // Start fade-in
+            } else if (s->xfade_gain >= 1.0f) {
+                s->xfade_gain = 1.0f;
+                s->xfade_dir = 0;   // Done
             }
         }
 
-        // 3. Read from ring buffer with linear interpolation
+        // 3. Stutter: begin fade-out on timer (jump happens at gain=0 above)
+        if (++s->stutter_counter >= stutter_interval) {
+            s->stutter_counter = 0;
+            s->xfade_dir = -1;  // Begin fade-out
+        }
+
+        // 4. Read from ring buffer with linear interpolation
         uint32_t ri  = (uint32_t)s->read_pos % s->capture_length;
         uint32_t ri2 = (ri + 1) % s->capture_length;
         float frac   = s->read_pos - floorf(s->read_pos);
         float wet    = s->buffer[ri] * (1.0f - frac) + s->buffer[ri2] * frac;
 
-        // 4. Advance read position at playback speed
+        // Apply crossfade envelope
+        wet *= s->xfade_gain;
+
+        // 5. Advance read position at playback speed
         s->read_pos += speed;
         if (s->read_pos >= (float)s->capture_length)
             s->read_pos -= (float)s->capture_length;
 
-        // 5. Mix
+        // 6. Mix
         out[i] = in[i] * dry + wet * mix;
     }
 }

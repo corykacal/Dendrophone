@@ -7,11 +7,11 @@
       "type": "granular",
       "inputs": ["in"], "outputs": ["out"],
       "params": {
-        "grain_size_ms": 60.0,
-        "density": 15.0,
-        "pitch_shift": 0.0,
-        "pitch_random": 0.0,
-        "position_random": 20.0,
+        "grain_size_ms": 100.0,
+        "density": 2.0,
+        "pitch_shift": -5.0,
+        "pitch_random": 3.0,
+        "position_random": 1.0,
         "window": "hann",
         "mix": 1.0
       }

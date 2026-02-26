@@ -44,8 +44,8 @@
     "reverse": {
       "type": "reverse",
       "inputs": ["in"], "outputs": ["out"],
-      "param_inputs": ["enabled"],
-      "params": { "buffer_time_ms": 1200.0, "enabled": 0.5, "mix": 1.0 }
+      "param_inputs": ["mix"],
+      "params": { "buffer_time_ms": 1200.0, "mix": 0.5 }
     },
     "bandpass": {
       "type": "svfilter",
@@ -101,7 +101,7 @@
     { "from": "input:L",             "to": "pre_filter:in" },
 
     { "from": "pre_filter:out",      "to": "reverse:in" },
-    { "from": "lfo_reverse_breath:value", "to": "reverse:enabled" },
+    { "from": "lfo_reverse_breath:value", "to": "reverse:mix" },
     { "from": "reverse:out",         "to": "bandpass:in" },
     { "from": "lfo_bandpass_sweep:value", "to": "bandpass:cutoff" },
     { "from": "lfo_bandpass_res:value",   "to": "bandpass:resonance" },

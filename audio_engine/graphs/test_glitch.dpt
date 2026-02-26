@@ -7,11 +7,11 @@
       "type": "glitch",
       "inputs": ["in"], "outputs": ["out"],
       "params": {
-        "freeze": 0.0,
-        "stutter_rate_hz": 8.0,
-        "capture_size_ms": 200.0,
-        "speed": 1.0,
-        "randomize": 0.0,
+        "freeze": 0.2,
+        "stutter_rate_hz": 10.5,
+        "capture_size_ms": 800.0,
+        "speed": 1.8,
+        "randomize": 0.9,
         "mix": 1.0
       }
     },

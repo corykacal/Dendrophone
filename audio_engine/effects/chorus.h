@@ -14,7 +14,10 @@ struct ChorusState {
     uint32_t buffer_size;       // Buffer size in samples
     uint32_t write_pos;         // Write position in buffer
 
-    float lfo_phase[MAX_VOICES]; // LFO phase for each voice
+    float lfo_cos[MAX_VOICES];   // Magic-circle cosine state per voice
+    float lfo_sin[MAX_VOICES];   // Magic-circle sine state per voice
+    float lfo_epsilon;           // 2*sin(π*rate/sr), recomputed when rate changes
+    float last_rate;             // Cached rate for epsilon recompute guard
     float sample_rate;
 
     int num_voices;             // Number of chorus voices (2-4)

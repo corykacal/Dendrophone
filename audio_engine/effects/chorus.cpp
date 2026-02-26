@@ -34,10 +34,16 @@ ChorusState* chorus_state_create(float rate_hz,
     state->write_pos = 0;
     state->num_voices = std::clamp(voices, 2, ChorusState::MAX_VOICES);
 
-    // Initialize LFO phases (spread evenly)
+    // Initialize magic-circle LFO state (voices spread evenly in phase)
+    float initial_phase_step = (2.0f * M_PI) / state->num_voices;
     for (int i = 0; i < ChorusState::MAX_VOICES; i++) {
-        state->lfo_phase[i] = (2.0f * M_PI * i) / state->num_voices;
+        float phase = initial_phase_step * i;
+        state->lfo_cos[i] = cosf(phase);
+        state->lfo_sin[i] = sinf(phase);
     }
+    float omega = M_PI * rate_hz / sample_rate;
+    state->lfo_epsilon = 2.0f * sinf(omega);
+    state->last_rate   = rate_hz;
 
     // Initialize parameters
     state->rate_hz.base = rate_hz;
@@ -46,7 +52,7 @@ ChorusState* chorus_state_create(float rate_hz,
 
     state->depth.base = depth;
     state->depth.smoothed = depth;
-    state->depth.smooth_coeff = 0.0f;
+    state->depth.set_smoothing(20.0f, sample_rate);
 
     state->mix.base = mix;
     state->mix.smoothed = mix;
@@ -78,55 +84,58 @@ void chorus_op(DSPBlock& b, float* buffers, int n) {
     const float mix = std::clamp(s->mix.get(), 0.0f, 1.0f);
     const float dry = 1.0f - mix;
 
-    // Get parameters
+    // Recompute magic-circle epsilon if rate has changed this block
     float rate = std::clamp(s->rate_hz.get_smoothed(), 0.1f, 10.0f);
-    float depth = std::clamp(s->depth.get(), 0.0f, 1.0f);
+    if (rate != s->last_rate) {
+        s->lfo_epsilon = 2.0f * sinf(M_PI * rate / s->sample_rate);
+        s->last_rate = rate;
+    }
+    float depth = std::clamp(s->depth.get_smoothed(), 0.0f, 1.0f);
 
     // Chorus parameters
-    const float base_delay_ms = 20.0f;  // Center delay time
-    const float mod_range_ms = 5.0f;    // Modulation range (±5ms)
+    const float base_delay_ms = 20.0f;
+    const float mod_range_ms  = 5.0f;
 
     const float base_delay_samples = base_delay_ms * s->sample_rate / 1000.0f;
-    const float mod_range_samples = mod_range_ms * s->sample_rate / 1000.0f;
-
-    const float lfo_increment = 2.0f * M_PI * rate / s->sample_rate;
+    const float mod_range_samples  = mod_range_ms  * s->sample_rate / 1000.0f;
+    const float stereo_spread      = s->stereo_width * 4.0f * s->sample_rate / 1000.0f;
 
     for (int i = 0; i < n; i++) {
         // Write to buffer
         s->buffer[s->write_pos] = in[i];
 
-        // Sum chorus voices
         float chorus_sum = 0.0f;
         for (int v = 0; v < s->num_voices; v++) {
-            // Generate LFO (sine wave)
-            float lfo = sinf(s->lfo_phase[v]);
+            // 1. Magic-circle LFO step (replaces sinf per sample)
+            float new_sin = s->lfo_sin[v] + s->lfo_epsilon * s->lfo_cos[v];
+            float new_cos = s->lfo_cos[v] - s->lfo_epsilon * new_sin;
+            s->lfo_sin[v] = new_sin;
+            s->lfo_cos[v] = new_cos;
 
-            // Calculate modulated delay time
-            float delay_samples = base_delay_samples + lfo * mod_range_samples * depth;
-            delay_samples = std::clamp(delay_samples, 10.0f, static_cast<float>(s->buffer_size - 10));
+            // 2. Per-voice base delay: even voices pushed +, odd voices pushed -
+            float voice_sign = (v % 2 == 0) ? 1.0f : -1.0f;
+            float voice_base_delay = base_delay_samples + voice_sign * stereo_spread;
 
-            // Calculate read position with interpolation
-            float read_pos_float = s->write_pos - delay_samples;
-            if (read_pos_float < 0.0f) {
-                read_pos_float += s->buffer_size;
-            }
+            // 3. Modulated delay time
+            float delay_samples = std::clamp(
+                voice_base_delay + new_sin * mod_range_samples * depth,
+                1.0f, static_cast<float>(s->buffer_size - 2));
 
-            uint32_t read_pos = static_cast<uint32_t>(read_pos_float);
-            uint32_t read_pos_next = (read_pos + 1) % s->buffer_size;
-            float frac = read_pos_float - floorf(read_pos_float);
+            // 4. Hermite cubic fractional delay read
+            float read_pos_f = (float)s->write_pos - delay_samples;
+            if (read_pos_f < 0.0f) read_pos_f += s->buffer_size;
+            uint32_t ri = (uint32_t)read_pos_f % s->buffer_size;
+            float frac = read_pos_f - floorf(read_pos_f);
 
-            // Linear interpolation
-            float sample_a = s->buffer[read_pos];
-            float sample_b = s->buffer[read_pos_next];
-            float delayed_sample = sample_a * (1.0f - frac) + sample_b * frac;
+            float p0 = s->buffer[(ri + s->buffer_size - 1) % s->buffer_size];
+            float p1 = s->buffer[ri];
+            float p2 = s->buffer[(ri + 1) % s->buffer_size];
+            float p3 = s->buffer[(ri + 2) % s->buffer_size];
 
-            chorus_sum += delayed_sample;
-
-            // Advance LFO phase
-            s->lfo_phase[v] += lfo_increment;
-            if (s->lfo_phase[v] >= 2.0f * M_PI) {
-                s->lfo_phase[v] -= 2.0f * M_PI;
-            }
+            float a = -0.5f*p0 + 1.5f*p1 - 1.5f*p2 + 0.5f*p3;
+            float b =  p0 - 2.5f*p1 + 2.0f*p2 - 0.5f*p3;
+            float c = -0.5f*p0 + 0.5f*p2;
+            chorus_sum += ((a * frac + b) * frac + c) * frac + p1;
         }
 
         // Average chorus voices and mix with dry signal

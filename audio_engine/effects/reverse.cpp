@@ -6,7 +6,6 @@
 
 ReverseState* reverse_state_create(float buffer_time_ms,
                                      float mix,
-                                     float enabled,
                                      float sample_rate) {
     auto align_up = [](size_t n) -> size_t { return (n + 63) & ~size_t(63); };
     ReverseState* state = static_cast<ReverseState*>(
@@ -48,17 +47,11 @@ ReverseState* reverse_state_create(float buffer_time_ms,
     state->buffer_time_ms.smoothed = buffer_time_ms;
     state->buffer_time_ms.set_smoothing(50.0f, sample_rate);  // 50ms smoothing
 
-    // Initialize mix parameter (no smoothing needed)
+    // Initialize mix parameter (with smoothing for smooth transitions)
     state->mix.base = mix;
     state->mix.mod = 0.0f;
     state->mix.smoothed = mix;
-    state->mix.smooth_coeff = 0.0f;
-
-    // Initialize enabled parameter (with smoothing for smooth transitions)
-    state->enabled.base = enabled;
-    state->enabled.mod = 0.0f;
-    state->enabled.smoothed = enabled;
-    state->enabled.set_smoothing(10.0f, sample_rate);  // 10ms smoothing
+    state->mix.set_smoothing(10.0f, sample_rate);  // 10ms smoothing
 
     return state;
 }
@@ -82,9 +75,8 @@ void reverse_op(DSPBlock& b, float* buffers, int n) {
     float* in = &buffers[b.in_a * n];
     float* out = &buffers[b.out * n];
 
-    const float mix = std::clamp(s->mix.get(), 0.0f, 1.0f);
+    const float mix = std::clamp(s->mix.get_smoothed(), 0.0f, 1.0f);
     const float dry = 1.0f - mix;
-    const float reverse_amt = std::clamp(s->enabled.get_smoothed(), 0.0f, 1.0f);
 
     // Get buffer time and convert to samples
     float buffer_ms = s->buffer_time_ms.get_smoothed();
@@ -136,11 +128,8 @@ void reverse_op(DSPBlock& b, float* buffers, int n) {
             s->crossfade_pos = 0.0f;
         }
 
-        // Blend between forward (input) and reverse based on enabled parameter
-        float processed = in[i] * (1.0f - reverse_amt) + reversed * reverse_amt;
-
-        // Mix dry/wet
-        out[i] = in[i] * dry + processed * mix;
+        // Mix dry/wet (mix=0 → forward, mix=1 → fully reversed)
+        out[i] = in[i] * dry + reversed * mix;
 
         // Advance write position
         s->write_pos = (s->write_pos + 1) % s->max_buffer_size;

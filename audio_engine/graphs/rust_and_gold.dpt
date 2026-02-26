@@ -22,11 +22,7 @@
       "type": "lfo", "rate": "control", "outputs": ["value"],
       "params": { "wave": "random", "freq_hz": 0.18, "depth": 3.0 }
     },
-    "lfo_tremolo_rate": {
-      "type": "lfo", "rate": "control", "outputs": ["value"],
-      "params": { "wave": "sine", "freq_hz": 0.04, "depth": 1.5 }
-    },
-    "lfo_filter_warm": {
+"lfo_filter_warm": {
       "type": "lfo", "rate": "control", "outputs": ["value"],
       "params": { "wave": "triangle", "freq_hz": 0.06, "depth": 1500.0 }
     },
@@ -67,14 +63,7 @@
       }
     },
 
-    "tremolo": {
-      "type": "tremolo",
-      "inputs": ["in"], "outputs": ["out"],
-      "param_inputs": ["rate_hz"],
-      "params": { "rate_hz": 2.5, "depth": 0.6, "waveform": "triangle", "stereo_phase": 0.25, "mix": 0.9 }
-    },
-
-    "filter_warm": {
+"filter_warm": {
       "type": "svfilter",
       "inputs": ["in"], "outputs": ["out"],
       "param_inputs": ["cutoff"],
@@ -100,10 +89,7 @@
     { "from": "granular:out",            "to": "glitch:in" },
     { "from": "lfo_stutter_chaos:value", "to": "glitch:stutter_rate_hz" },
 
-    { "from": "glitch:out",             "to": "tremolo:in" },
-    { "from": "lfo_tremolo_rate:value", "to": "tremolo:rate_hz" },
-
-    { "from": "tremolo:out",           "to": "filter_warm:in" },
+    { "from": "glitch:out",            "to": "filter_warm:in" },
     { "from": "lfo_filter_warm:value", "to": "filter_warm:cutoff" },
 
     { "from": "filter_warm:out",       "to": "reverb:in" },

@@ -7,7 +7,7 @@
       "type": "pitch_shift",
       "inputs": ["in"], "outputs": ["out"],
       "params": {
-        "pitch": 5.0,
+        "pitch": -4.0,
         "mix": 1.0
       }
     },

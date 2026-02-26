@@ -23,14 +23,12 @@ struct ReverseState {
 
     // Modulatable parameters
     Param buffer_time_ms;       // Reverse buffer length in milliseconds (50.0 - 2000.0)
-    Param mix;                  // Dry/wet mix (0.0 - 1.0)
-    Param enabled;              // Reverse on/off (0.0 = forward, 1.0 = reverse)
+    Param mix;                  // Dry/wet mix (0.0 = forward, 1.0 = fully reversed)
 } __attribute__((aligned(64)));
 
 // Control thread: allocate and initialize reverse state
 ReverseState* reverse_state_create(float buffer_time_ms,
                                      float mix,
-                                     float enabled,
                                      float sample_rate);
 
 // Control thread: free reverse state

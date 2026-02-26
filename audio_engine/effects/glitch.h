@@ -17,6 +17,9 @@ struct GlitchState {
     uint32_t stutter_counter;   // Counter for stutter rhythm
     uint32_t random_seed;       // Random seed for variations
 
+    float xfade_gain;           // Crossfade envelope amplitude (0.0–1.0)
+    int32_t xfade_dir;          // -1 = fading out, 0 = idle, +1 = fading in
+
     float sample_rate;
 
     // Modulatable parameters

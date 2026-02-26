@@ -13,11 +13,11 @@
 #include "../effects/looper.h"
 #include "../effects/glitch.h"
 #include "../effects/chorus.h"
-#include "../effects/tremolo.h"
 #include "../effects/flanger.h"
 #include "../effects/compressor.h"
-#include "../effects/overdrive.h"
+#include "../effects/crunchy.h"
 #include "../effects/autowah.h"
+#include "../effects/gain.h"
 #include <algorithm>
 #include <queue>
 #include <map>
@@ -393,10 +393,9 @@ std::vector<DSPBlock> GraphCompiler::compile_audio_node(const GraphNode& node,
     else if (node.type == "reverse") {
         float buffer_time_ms = get_param<float>(node.params, "buffer_time_ms", 500.0f);
         float mix = get_param<float>(node.params, "mix", 1.0f);
-        float enabled = get_param<float>(node.params, "enabled", 1.0f);
 
         // Create reverse state with modulatable params
-        ReverseState* state = reverse_state_create(buffer_time_ms, mix, enabled,
+        ReverseState* state = reverse_state_create(buffer_time_ms, mix,
                                                     static_cast<float>(ctx.sample_rate));
         if (!state) {
             errors.push_back("Failed to allocate reverse state for " + node.id);
@@ -407,7 +406,6 @@ std::vector<DSPBlock> GraphCompiler::compile_audio_node(const GraphNode& node,
         // Register modulatable parameters
         ctx.params[node.id + ":buffer_time_ms"] = &state->buffer_time_ms;
         ctx.params[node.id + ":mix"] = &state->mix;
-        ctx.params[node.id + ":enabled"] = &state->enabled;
 
         // Find input buffer
         uint32_t in_buf = 0;
@@ -687,49 +685,6 @@ std::vector<DSPBlock> GraphCompiler::compile_audio_node(const GraphNode& node,
         block.state = state;
         blocks.push_back(block);
     }
-    else if (node.type == "tremolo") {
-        // Parse tremolo parameters
-        float rate_hz = get_param<float>(node.params, "rate_hz", 4.0f);
-        float depth = get_param<float>(node.params, "depth", 0.5f);
-        std::string waveform = get_param<std::string>(node.params, "waveform", "sine");
-        float stereo_phase = get_param<float>(node.params, "stereo_phase", 0.0f);
-        float mix = get_param<float>(node.params, "mix", 1.0f);
-
-        // Create tremolo state
-        TremoloState* state = tremolo_state_create(rate_hz, depth, waveform, stereo_phase, mix,
-                                                    static_cast<float>(ctx.sample_rate));
-        if (!state) {
-            errors.push_back("Failed to allocate tremolo state for " + node.id);
-            return blocks;
-        }
-        ctx.allocated_states.push_back(state);
-
-        // Register modulatable parameters
-        ctx.params[node.id + ":rate_hz"] = &state->rate_hz;
-        ctx.params[node.id + ":depth"] = &state->depth;
-        ctx.params[node.id + ":mix"] = &state->mix;
-
-        // Find input buffer
-        uint32_t in_buf = 0;
-        for (const auto& conn : graph.connections) {
-            if (conn.to.node == node.id && conn.to.port == "in") {
-                std::string src_ref = conn.from.node + ":" + conn.from.port;
-                in_buf = get_buffer(ctx, src_ref);
-                break;
-            }
-        }
-
-        std::string out_ref = node.id + ":out";
-        uint32_t out_buf = allocate_buffer(ctx, out_ref);
-
-        DSPBlock block;
-        block.fn = tremolo_op;
-        block.in_a = in_buf;
-        block.in_b = 0;
-        block.out = out_buf;
-        block.state = state;
-        blocks.push_back(block);
-    }
     else if (node.type == "flanger") {
         // Parse flanger parameters
         float rate_hz = get_param<float>(node.params, "rate_hz", 0.5f);
@@ -822,27 +777,26 @@ std::vector<DSPBlock> GraphCompiler::compile_audio_node(const GraphNode& node,
         block.state = state;
         blocks.push_back(block);
     }
-    else if (node.type == "overdrive") {
-        // Parse overdrive parameters
+    else if (node.type == "crunchy") {
+        // Parse crunchy parameters
         float drive = get_param<float>(node.params, "drive", 0.5f);
-        float tone = get_param<float>(node.params, "tone", 0.5f);
-        float level = get_param<float>(node.params, "level", 1.0f);
-        std::string type = get_param<std::string>(node.params, "type", "soft");
+        float bits = get_param<float>(node.params, "bits", 8.0f);
+        float downsample = get_param<float>(node.params, "downsample", 1.0f);
         float mix = get_param<float>(node.params, "mix", 1.0f);
 
-        // Create overdrive state
-        OverdriveState* state = overdrive_state_create(drive, tone, level, type, mix,
-                                                        static_cast<float>(ctx.sample_rate));
+        // Create crunchy state
+        CrunchyState* state = crunchy_state_create(drive, bits, downsample, mix,
+                                                   static_cast<float>(ctx.sample_rate));
         if (!state) {
-            errors.push_back("Failed to allocate overdrive state for " + node.id);
+            errors.push_back("Failed to allocate crunchy state for " + node.id);
             return blocks;
         }
         ctx.allocated_states.push_back(state);
 
         // Register modulatable parameters
         ctx.params[node.id + ":drive"] = &state->drive;
-        ctx.params[node.id + ":tone"] = &state->tone;
-        ctx.params[node.id + ":level"] = &state->level;
+        ctx.params[node.id + ":bits"] = &state->bits;
+        ctx.params[node.id + ":downsample"] = &state->downsample;
         ctx.params[node.id + ":mix"] = &state->mix;
 
         // Find input buffer
@@ -859,7 +813,7 @@ std::vector<DSPBlock> GraphCompiler::compile_audio_node(const GraphNode& node,
         uint32_t out_buf = allocate_buffer(ctx, out_ref);
 
         DSPBlock block;
-        block.fn = overdrive_op;
+        block.fn = crunchy_op;
         block.in_a = in_buf;
         block.in_b = 0;
         block.out = out_buf;
@@ -919,8 +873,14 @@ std::vector<DSPBlock> GraphCompiler::compile_audio_node(const GraphNode& node,
     else if (node.type == "gain") {
         float gain_val = get_param<float>(node.params, "gain", 1.0f);
 
-        GainState* state = new GainState{gain_val};
+        GainState* state = gain_state_create(gain_val, static_cast<float>(ctx.sample_rate));
+        if (!state) {
+            errors.push_back("Failed to allocate gain state for " + node.id);
+            return blocks;
+        }
         ctx.allocated_states.push_back(state);
+
+        ctx.params[node.id + ":gain"] = &state->gain;
 
         uint32_t in_buf = 0;
         for (const auto& conn : graph.connections) {

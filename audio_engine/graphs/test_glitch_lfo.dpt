@@ -1,0 +1,37 @@
+{
+  "dpt_version": 1,
+  "audio": { "inputs": ["L", "R"], "outputs": ["L", "R"] },
+  "nodes": {
+    "input": { "type": "input", "outputs": ["L", "R"] },
+    "lfo_randomize": {
+      "type": "lfo", "rate": "control", "outputs": ["value"],
+      "params": { "wave": "sine", "freq_hz": 0.08, "depth": 0.85 }
+    },
+    "lfo_mix": {
+      "type": "lfo", "rate": "control", "outputs": ["value"],
+      "params": { "wave": "sine", "freq_hz": 0.05, "depth": 0.55 }
+    },
+    "glitch": {
+      "type": "glitch",
+      "inputs": ["in"], "outputs": ["out"],
+      "param_inputs": ["speed", "randomize", "mix"],
+      "params": {
+        "freeze": 0.4,
+        "stutter_rate_hz": 1.5,
+        "capture_size_ms": 800.0,
+        "speed": 1.5,
+        "randomize": 0.55,
+        "mix": 0.75
+      }
+    },
+
+    "output": { "type": "output", "inputs": ["L", "R"] }
+  },
+  "connections": [
+    { "from": "input:L",           "to": "glitch:in" },
+    { "from": "lfo_randomize:value", "to": "glitch:randomize" },
+    { "from": "lfo_mix:value",       "to": "glitch:mix" },
+    { "from": "glitch:out",        "to": "output:L" },
+    { "from": "glitch:out",        "to": "output:R" }
+  ]
+}

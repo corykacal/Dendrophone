@@ -7,10 +7,10 @@
       "type": "flanger",
       "inputs": ["in"], "outputs": ["out"],
       "params": {
-        "rate_hz": 0.5,
-        "depth": 0.7,
-        "feedback": 0.5,
-        "delay_ms": 3.0,
+        "rate_hz": 1.5,
+        "depth": 0.8,
+        "feedback": 0.8,
+        "delay_ms": 10.0,
         "mix": 1.0
       }
     },
