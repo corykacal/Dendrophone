@@ -65,17 +65,17 @@ add_library(dendrophone_effects STATIC
     effects/delay.cpp
     effects/envelope.cpp
     effects/flanger.cpp
+    effects/gain.cpp
     effects/glitch.cpp
     effects/granular.cpp
     effects/lfo.cpp
     effects/looper.cpp
     effects/multitap_delay.cpp
-    effects/overdrive.cpp
+    effects/crunchy.cpp
     effects/pitch_shift.cpp
     effects/reverb.cpp
     effects/reverse.cpp
     effects/svfilter.cpp
-    effects/tremolo.cpp
 )
 target_include_directories(dendrophone_effects PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}

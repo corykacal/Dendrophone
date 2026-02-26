@@ -25,25 +25,6 @@ inline void mix_op(DSPBlock& b, float* buffers, int n) {
     }
 }
 
-// Gain state for gain_op
-struct GainState {
-    float gain;
-};
-
-// Gain: out = in_a * gain
-// state must point to GainState
-inline void gain_op(DSPBlock& b, float* buffers, int n) {
-    float* in = &buffers[b.in_a * n];
-    float* out = &buffers[b.out * n];
-    float gain = 1.0f;
-    if (b.state) {
-        gain = static_cast<GainState*>(b.state)->gain;
-    }
-    for (int i = 0; i < n; i++) {
-        out[i] = in[i] * gain;
-    }
-}
-
 // Invert: out = -in_a (phase inversion)
 inline void invert_op(DSPBlock& b, float* buffers, int n) {
     float* in = &buffers[b.in_a * n];

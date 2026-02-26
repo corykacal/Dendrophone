@@ -3,22 +3,23 @@
   "audio": { "inputs": ["L", "R"], "outputs": ["L", "R"] },
   "nodes": {
     "input":  { "type": "input",  "outputs": ["L", "R"] },
+    "lfo": {
+      "type": "lfo", "rate": "control",
+      "outputs": ["value"],
+      "params": { "wave": "sine", "freq_hz": 0.1, "depth": 0.5 }
+    },
     "chorus": {
       "type": "chorus",
       "inputs": ["in"], "outputs": ["out"],
-      "params": {
-        "rate_hz": 0.5,
-        "depth": 0.5,
-        "voices": 3,
-        "stereo_width": 0.2,
-        "mix": 1.0
-      }
+      "param_inputs": ["rate_hz"],
+      "params": { "rate_hz": 1.0, "depth": 0.5, "voices": 3, "stereo_width": 0.3, "mix": 0.7 }
     },
     "output": { "type": "output", "inputs": ["L", "R"] }
   },
   "connections": [
-    { "from": "input:L",    "to": "chorus:in" },
-    { "from": "chorus:out", "to": "output:L" },
-    { "from": "chorus:out", "to": "output:R" }
+    { "from": "input:L",     "to": "chorus:in" },
+    { "from": "lfo:value",   "to": "chorus:rate_hz" },
+    { "from": "chorus:out",  "to": "output:L" },
+    { "from": "chorus:out",  "to": "output:R" }
   ]
 }

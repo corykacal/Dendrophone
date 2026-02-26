@@ -3,21 +3,22 @@
   "audio": { "inputs": ["L", "R"], "outputs": ["L", "R"] },
   "nodes": {
     "input":  { "type": "input",  "outputs": ["L", "R"] },
+    "lfo": {
+      "type": "lfo", "rate": "control",
+      "outputs": ["value"],
+      "params": { "wave": "sine", "freq_hz": 0.5, "depth": 2.5 }
+    },
     "flanger": {
       "type": "flanger",
       "inputs": ["in"], "outputs": ["out"],
-      "params": {
-        "rate_hz": 1.5,
-        "depth": 0.8,
-        "feedback": 0.8,
-        "delay_ms": 10.0,
-        "mix": 1.0
-      }
+      "param_inputs": ["delay_ms"],
+      "params": { "delay_ms": 2.5, "feedback": 0.7, "mix": 0.8 }
     },
     "output": { "type": "output", "inputs": ["L", "R"] }
   },
   "connections": [
     { "from": "input:L",      "to": "flanger:in" },
+    { "from": "lfo:value",    "to": "flanger:delay_ms" },
     { "from": "flanger:out",  "to": "output:L" },
     { "from": "flanger:out",  "to": "output:R" }
   ]

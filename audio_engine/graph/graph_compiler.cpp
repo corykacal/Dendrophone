@@ -686,15 +686,13 @@ std::vector<DSPBlock> GraphCompiler::compile_audio_node(const GraphNode& node,
         blocks.push_back(block);
     }
     else if (node.type == "flanger") {
-        // Parse flanger parameters
-        float rate_hz = get_param<float>(node.params, "rate_hz", 0.5f);
-        float depth = get_param<float>(node.params, "depth", 0.7f);
+        // Parse flanger parameters (rate_hz and depth removed — wire an LFO to delay_ms instead)
         float feedback = get_param<float>(node.params, "feedback", 0.5f);
         float delay_ms = get_param<float>(node.params, "delay_ms", 2.0f);
         float mix = get_param<float>(node.params, "mix", 0.5f);
 
         // Create flanger state
-        FlangerState* state = flanger_state_create(rate_hz, depth, feedback, delay_ms, mix,
+        FlangerState* state = flanger_state_create(feedback, delay_ms, mix,
                                                     static_cast<float>(ctx.sample_rate));
         if (!state) {
             errors.push_back("Failed to allocate flanger state for " + node.id);
@@ -703,8 +701,6 @@ std::vector<DSPBlock> GraphCompiler::compile_audio_node(const GraphNode& node,
         ctx.allocated_states.push_back(state);
 
         // Register modulatable parameters
-        ctx.params[node.id + ":rate_hz"] = &state->rate_hz;
-        ctx.params[node.id + ":depth"] = &state->depth;
         ctx.params[node.id + ":feedback"] = &state->feedback;
         ctx.params[node.id + ":delay_ms"] = &state->delay_ms;
         ctx.params[node.id + ":mix"] = &state->mix;
